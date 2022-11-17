@@ -1,0 +1,87 @@
+import java.awt.Color;
+import java.awt.EventQueue;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import javax.swing.JLabel;
+import java.awt.BorderLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.FlowLayout;
+
+public class StartingScreen extends JFrame implements ActionListener{
+
+	private JPanel contentPane;
+	JButton button1;
+	JButton button2;
+	
+	public StartingScreen() {
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setBounds(100, 100, 400, 600);
+		contentPane = new JPanel();
+		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+		
+		setContentPane(contentPane);
+		contentPane.setLayout(new BorderLayout(0, 0));
+		
+		JPanel leftPanel = LeftPanel();
+		contentPane.add(leftPanel, BorderLayout.WEST);
+		
+		JPanel centerPanel = CenterPanel();
+		contentPane.add(centerPanel, BorderLayout.CENTER);
+	}
+	
+	public static void main(String[] args) {
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					StartingScreen frame = new StartingScreen();
+					frame.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+	}
+	
+	private JPanel LeftPanel() {
+		ImageIcon img = new ImageIcon("img/user.jpg");
+		ImageIcon img2 = new ImageIcon("img/speech-bubble.jpg");
+		button1 = new JButton(img);
+		button2 = new JButton(img2);
+		
+		ActionListener listener = new StartingScreen();
+		button1.addActionListener(listener);
+		button2.addActionListener(listener);
+		JPanel panel = new JPanel();
+		panel.setBackground(new Color(230,230,230));
+		panel.setLayout(new GridLayout(10, 1, 0, 0));
+		panel.add(button1);
+		panel.add(button2);
+		
+		return panel;
+	}
+	
+	private JPanel CenterPanel() {
+		JPanel panel = new JPanel();
+		panel.setBackground(Color.WHITE);
+		
+		return panel;
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == button1) {
+			new StartingScreen();
+			setVisible(false);
+		}
+		else if (e.getSource() == button2) {
+			new ChatRoomList();
+			setVisible(false);
+		}
+	}
+}
