@@ -206,13 +206,13 @@ public class StartingScreen extends JFrame {
 			}
 			// 채팅방 추가 버튼
 			else if (e.getSource() == addRoom) {
-				chatRoomDialog.setVisible(true);
-//				JLabel room = new JLabel("채팅방");
-//				room.setBorder(new LineBorder(Color.BLACK, 1, false));
-//				room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
-//				roomVector.add(room);
-//				chatRoomPanel.add(room);
-//				ChatRoom chatRoom = new ChatRoom();
+				//chatRoomDialog.setVisible(true);
+				JLabel room = new JLabel("채팅방");
+				room.setBorder(new LineBorder(Color.BLACK, 1, false));
+				room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
+				roomVector.add(room);
+				chatRoomPanel.add(room);
+				ChatRoom chatRoom = new ChatRoom();
 			}
 			// 설정 버튼 
 			else if (e.getSource() == setting) {

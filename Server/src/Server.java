@@ -397,7 +397,6 @@ public class Server extends JFrame {
 		public ChatRoom(String room_id, List<String> userlist) {
 			this.room_id = room_id;
 			this.userlist = userlist;
-			
 		}
 	}
 
