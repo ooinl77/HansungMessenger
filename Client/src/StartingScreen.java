@@ -42,7 +42,7 @@ public class StartingScreen extends JFrame {
 	private Vector<JLabel> roomVector;
 	private Vector<JLabel> friendVector;
 	
-	public StartingScreen() {
+	public StartingScreen(String id, String ip_addr, String port_no) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 400, 600);
 		contentPane = new JPanel();
@@ -64,7 +64,7 @@ public class StartingScreen extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				rightPanel.removeAll();
-				setFriendPanel();
+				setFriendPanel(id);
 				rightPanel.updateUI();
 			}
 		});
@@ -81,14 +81,14 @@ public class StartingScreen extends JFrame {
 		
 		contentPane.add(leftPanel, BorderLayout.WEST);
 		contentPane.add(rightPanel, BorderLayout.CENTER);
-		setFriendPanel(); // 초기화면
+		setFriendPanel(id); // 초기화면
 		setVisible(true);
 	}
 	
-	private void setFriendPanel() {
+	private void setFriendPanel(String id) {
 		rightPanel.setBackground(Color.WHITE);
 		rightPanel.setLayout(new BorderLayout(0, 0));
-		rightPanel.add(myProfilePanel(profilePicture, statusMessage), BorderLayout.NORTH);
+		rightPanel.add(myProfilePanel(id, profilePicture, statusMessage), BorderLayout.NORTH);
 		rightPanel.add(friendListPanel(), BorderLayout.CENTER);
 	}
 	
@@ -98,12 +98,11 @@ public class StartingScreen extends JFrame {
 	}
 	
 	// user profile, 창을 바꿔도 프로필 사진과 상태메세지 유지
-	private JPanel myProfilePanel(ImageIcon profilePicture, String statusMessage) {
+	private JPanel myProfilePanel(String id ,ImageIcon profilePicture, String statusMessage) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout(0,0));
 		panel.setBackground(Color.WHITE);
 		myMouseAdapter listener = new myMouseAdapter();
-		String id = "id";
 		//profile = new JLabel(id, baseProfile, SwingConstants.LEFT);
 		profile = new JLabel(id, profilePicture, SwingConstants.LEFT);
 		status = new JLabel(statusMessage);
@@ -212,6 +211,7 @@ public class StartingScreen extends JFrame {
 				room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
 				roomVector.add(room);
 				chatRoomPanel.add(room);
+				repaint();
 				ChatRoom chatRoom = new ChatRoom();
 			}
 			// 설정 버튼 
