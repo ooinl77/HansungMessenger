@@ -8,6 +8,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.*;
+import java.net.Socket;
 import java.util.*;
 
 public class StartingScreen extends JFrame {
@@ -41,6 +43,16 @@ public class StartingScreen extends JFrame {
 	private ChatRoomDialog chatRoomDialog;
 	private Vector<JLabel> roomVector;
 	private Vector<JLabel> friendVector;
+	
+	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
+	private Socket socket; // 연결소켓
+	private InputStream is;
+	private OutputStream os;
+	private DataInputStream dis;
+	private DataOutputStream dos;
+
+	private ObjectInputStream ois;
+	private ObjectOutputStream oos;
 	
 	public StartingScreen(String id, String ip_addr, String port_no) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -83,8 +95,64 @@ public class StartingScreen extends JFrame {
 		contentPane.add(rightPanel, BorderLayout.CENTER);
 		setFriendPanel(id); // 초기화면
 		setVisible(true);
+		
+		try {
+			socket = new Socket(ip_addr, Integer.parseInt(port_no));
+
+
+			oos = new ObjectOutputStream(socket.getOutputStream());
+			oos.flush();
+			ois = new ObjectInputStream(socket.getInputStream());
+
+			//SendMessage("/login " + UserName);
+			ChatMsg obcm = new ChatMsg(id, "100", "Hello");
+			SendObject(obcm);
+			
+			ListenNetwork net = new ListenNetwork();
+			net.start();
+
+		} catch (NumberFormatException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
-	
+	// Server Message를 수신해서 화면에 표시
+		class ListenNetwork extends Thread {
+			public void run() {
+				while (true) {
+					try {
+						Object obcm = null;
+						String msg = null;
+						ChatMsg cm;
+						try {
+							obcm = ois.readObject();
+						} catch (ClassNotFoundException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+							break;
+						}
+						if (obcm == null)
+							break;
+						if (obcm instanceof ChatMsg) {
+							cm = (ChatMsg) obcm;
+						} else
+							continue;
+					} catch (IOException e) {
+						try {
+//							dos.close();
+//							dis.close();
+							ois.close();
+							oos.close();
+							socket.close();
+							break;
+						} catch (Exception ee) {
+							break;
+						} // catch문 끝
+					} // 바깥 catch문끝
+
+				}
+			}
+		}
 	private void setFriendPanel(String id) {
 		rightPanel.setBackground(Color.WHITE);
 		rightPanel.setLayout(new BorderLayout(0, 0));
@@ -319,6 +387,14 @@ public class StartingScreen extends JFrame {
 				}
 				
 			});
+		}
+	}
+	
+	public void SendObject(Object ob) { // 서버로 메세지를 보내는 메소드
+		try {
+			oos.writeObject(ob);
+		} catch (IOException e) {
+			// textArea.append("메세지 송신 에러!!\n");
 		}
 	}
 }

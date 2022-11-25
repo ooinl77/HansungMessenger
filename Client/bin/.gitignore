@@ -17,3 +17,5 @@
 /ChatRoom$TextSendAction.class
 /ChatRoom$emoticonSendListener.class
 /StartingScreen$ChatRoomDialog$1.class
+/ChatMsg.class
+/StartingScreen$ListenNetwork.class
