@@ -205,14 +205,8 @@ public class StartingScreen extends JFrame {
 			}
 			// 채팅방 추가 버튼
 			else if (e.getSource() == addRoom) {
-				//chatRoomDialog.setVisible(true);
-				JLabel room = new JLabel("채팅방");
-				room.setBorder(new LineBorder(Color.BLACK, 1, false));
-				room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
-				roomVector.add(room);
-				chatRoomPanel.add(room);
-				repaint();
-				ChatRoom chatRoom = new ChatRoom();
+				chatRoomDialog.setVisible(true);
+
 			}
 			// 설정 버튼 
 			else if (e.getSource() == setting) {
@@ -301,14 +295,30 @@ public class StartingScreen extends JFrame {
 	// 채팅방 생성 다이얼로그
 	class ChatRoomDialog extends JDialog { 
 		private static final long serialVersionUID = 1L;
+		private JTextField roomNum = new JTextField();
 		private JButton createBtn = new JButton("생성");
 		public ChatRoomDialog(JFrame frame, String title) {
 			super(frame, title);
 			setLayout(new BorderLayout());
-			this.add(new JLabel("방 번호"), BorderLayout.NORTH);
+			this.add(roomNum, BorderLayout.NORTH);
 			this.add(new JScrollPane(friendList()), BorderLayout.CENTER);
 			this.add(createBtn, BorderLayout.SOUTH);
 			setSize(300,500);
+			
+			createBtn.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					JLabel room = new JLabel("채팅방 " + roomNum.getText());
+					room.setBorder(new LineBorder(Color.BLACK, 1, false));
+					room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
+					roomVector.add(room);
+					chatRoomPanel.add(room);
+					repaint();
+					ChatRoom chatRoom = new ChatRoom(roomNum.getText());
+					setVisible(false);
+				}
+				
+			});
 		}
 	}
 }

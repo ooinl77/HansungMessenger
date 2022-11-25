@@ -63,7 +63,7 @@ public class ChatRoom extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public ChatRoom() { // String username, String ip_addr, String port_no) {
+	public ChatRoom(String room_id) { // String username, String ip_addr, String port_no) {
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 374, 565);
 		contentPane = new JPanel();
