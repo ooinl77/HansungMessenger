@@ -17,7 +17,6 @@ public class StartingScreen extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
 	private JPanel rightPanel = new JPanel();
-	private JPanel friendPanel; // 친구 목록
 	private JPanel chatRoomPanel; // 채팅방 목록
 	private ImageIcon baseProfile = new ImageIcon("img/user.jpg");
 	private ImageIcon profilePicture = new ImageIcon("img/user.jpg");  
@@ -36,13 +35,14 @@ public class StartingScreen extends JFrame {
 	private JButton button2 = new JButton(img2); // 채팅방 목록 이동 버튼
 	private JScrollPane chatRoomList; // 채팅방 목록 창
 	private JScrollPane friendListPane; // 친구 목록 창
+	private JScrollPane friendPanel; // 친구 목록
 	
 	private JFrame frame;
 	private FileDialog fd;
 	private StatusDialog statusDialog;
 	private ChatRoomDialog chatRoomDialog;
 	private Vector<JLabel> roomVector;
-	private Vector<JLabel> friendVector;
+	private Vector<Friend> friendVector;
 	
 	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
 	private Socket socket; // 연결소켓
@@ -63,7 +63,7 @@ public class StartingScreen extends JFrame {
 		contentPane.setLayout(new BorderLayout(0, 0));
 		
 		roomVector = new Vector<JLabel>();
-		friendVector = new Vector<JLabel>();
+		friendVector = new Vector<Friend>();
 		
 		statusDialog = new StatusDialog(this, "상태 메세지 변경");
 		chatRoomDialog = new ChatRoomDialog(this, "채팅방 생성");
@@ -99,7 +99,6 @@ public class StartingScreen extends JFrame {
 		try {
 			socket = new Socket(ip_addr, Integer.parseInt(port_no));
 
-
 			oos = new ObjectOutputStream(socket.getOutputStream());
 			oos.flush();
 			ois = new ObjectInputStream(socket.getInputStream());
@@ -117,42 +116,48 @@ public class StartingScreen extends JFrame {
 		}
 	}
 	// Server Message를 수신해서 화면에 표시
-		class ListenNetwork extends Thread {
-			public void run() {
-				while (true) {
+	class ListenNetwork extends Thread {
+		public void run() {
+			while (true) {
+				try {
+					Object obcm = null;
+					String msg = null;
+					ChatMsg cm;
 					try {
-						Object obcm = null;
-						String msg = null;
-						ChatMsg cm;
-						try {
-							obcm = ois.readObject();
-						} catch (ClassNotFoundException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-							break;
-						}
-						if (obcm == null)
-							break;
-						if (obcm instanceof ChatMsg) {
-							cm = (ChatMsg) obcm;
-						} else
-							continue;
-					} catch (IOException e) {
-						try {
+						obcm = ois.readObject();
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						break;
+					}
+					if (obcm == null)
+						break;
+					if (obcm instanceof ChatMsg) {
+						cm = (ChatMsg) obcm;
+					} else
+						continue;
+				} catch (IOException e) {
+					try {
 //							dos.close();
 //							dis.close();
-							ois.close();
-							oos.close();
-							socket.close();
-							break;
-						} catch (Exception ee) {
-							break;
-						} // catch문 끝
-					} // 바깥 catch문끝
+						ois.close();
+						oos.close();
+						socket.close();
+						break;
+					} catch (Exception ee) {
+						break;
+					} // catch문 끝
+				} // 바깥 catch문끝
 
-				}
 			}
 		}
+	}
+	
+	// 다른 유저가 로그인 하면 친구 목록에 추가
+	public void AddFriend(ImageIcon icon, String id, String statusMessage) {
+		
+	}
+	
 	private void setFriendPanel(String id) {
 		rightPanel.setBackground(Color.WHITE);
 		rightPanel.setLayout(new BorderLayout(0, 0));
@@ -187,7 +192,7 @@ public class StartingScreen extends JFrame {
 	private JPanel friendListPanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout(0,0));
-		friendListPane = new JScrollPane(friendList());
+		friendListPane = new JScrollPane();
 		panel.add(northPanel(), BorderLayout.NORTH);
 		panel.add(friendListPane, BorderLayout.CENTER);
 		return panel;
@@ -206,15 +211,15 @@ public class StartingScreen extends JFrame {
 		return panel;
 	}
 	
-	private JPanel friendList() {
-		friendPanel = new JPanel();
-		friendPanel.setBackground(Color.WHITE);
-		friendPanel.setLayout(new GridLayout(100,1,0,0));
-		for (int i=0; i<friendVector.size(); i++) {
-			friendPanel.add(friendVector.get(i));
-		}
-		return friendPanel;
-	}
+//	private JPanel friendList() {
+//		friendPanel = new JScrollPane();
+//		friendPanel.setBackground(Color.WHITE);
+//		friendPanel.setLayout(new GridLayout(100,1,0,0));
+//		for (int i=0; i<friendVector.size(); i++) {
+//			//friendPanel.add(temporaryLostComponent, friendVector.get(i));
+//		}
+//		return friendPanel;
+//	}
 	
 	// 채팅방 목록 
 	private JPanel chatRoomPanel() {
@@ -369,7 +374,7 @@ public class StartingScreen extends JFrame {
 			super(frame, title);
 			setLayout(new BorderLayout());
 			this.add(roomNum, BorderLayout.NORTH);
-			this.add(new JScrollPane(friendList()), BorderLayout.CENTER);
+			//this.add(new JScrollPane(friendList()), BorderLayout.CENTER);
 			this.add(createBtn, BorderLayout.SOUTH);
 			setSize(300,500);
 			
