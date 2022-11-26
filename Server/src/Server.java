@@ -40,8 +40,8 @@ public class Server extends JFrame {
 	private ServerSocket socket; // 서버소켓
 	private Socket client_socket; // accept() 에서 생성된 client 소켓
 	private Vector UserVec = new Vector(); // 연결된 사용자를 저장할 벡터
-	private Vector RoomVec = new Vector();
-	private List<String> userlist = new ArrayList<String>();
+	private Vector<ChatRoom> RoomVec = new Vector<ChatRoom>();
+	private Vector<String> userlist = new Vector<String>();
 	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
 
 	/**
@@ -160,7 +160,8 @@ public class Server extends JFrame {
 
 		private Socket client_socket;
 		private Vector user_vc;
-		public String roomid = "";
+		private Vector<ChatRoom> room_vc;
+		public int roomid = 0;
 		public String UserName = "";
 		public String UserStatus;
 
@@ -169,6 +170,7 @@ public class Server extends JFrame {
 			// 매개변수로 넘어온 자료 저장
 			this.client_socket = client_socket;
 			this.user_vc = UserVec;
+			this.room_vc = RoomVec;
 			try {
 //				is = client_socket.getInputStream();
 //				dis = new DataInputStream(is);
@@ -260,7 +262,7 @@ public class Server extends JFrame {
 //				byte[] bb;
 //				bb = MakePacket(msg);
 //				dos.write(bb, 0, bb.length);
-				ChatMsg obcm = new ChatMsg("SERVER", "200", msg, userlist);
+				ChatMsg obcm = new ChatMsg("SERVER", "200", msg);
 				oos.writeObject(obcm);
 			} catch (IOException e) {
 				AppendText("dos.writeObject() error");
@@ -343,28 +345,37 @@ public class Server extends JFrame {
 					} else
 						continue;
 					if (cm.getCode().matches("100")) {
-						UserName = cm.getRoomId();
+						UserName = cm.getId();
 						UserStatus = "O"; // Online 상태
 						Login();
 					} else if (cm.getCode().matches("200")) {
-						msg = String.format("[%s] %s", cm.getRoomId(), cm.getData());
+						msg = String.format("[%s] %s", cm.getId(), cm.getData());
 						AppendText(msg); // server 화면에 출력
-						String[] args = msg.split(" "); // 단어들을 분리한다.
-						if (args.length == 1) { // Enter key 만 들어온 경우 Wakeup 처리만 한다.
-							UserStatus = "O";
-						} else { // 일반 채팅 메시지
-							UserStatus = "O";
-							//WriteAll(msg + "\n"); // Write All
-							WriteAllObject(cm);
+						for(int i=0; i<room_vc.size(); i++) {
+							if(Integer.toString(cm.getRoomId()) == room_vc.get(i).getRoomId()) {
+								
+							}
 						}
+						
 					} else if (cm.getCode().matches("400")) { // logout message 처리
 						Logout();
 						break;
 					} else if (cm.getCode().matches("800")) {
-						roomid = cm.getRoomId();
+						roomid = 1000;
 						userlist = cm.getUserlist();
-						ChatRoom room = new ChatRoom(roomid, userlist);
+						ChatRoom room = new ChatRoom(Integer.toString(roomid), userlist);
+						for (int i = 0; i < userlist.size(); i++) {
+							for(int j = 0; j < user_vc.size(); j++) {
+								UserService user = (UserService) user_vc.elementAt(j);
+								if (userlist.elementAt(i) == user.toString()) {
+									ChatMsg obcmr = new ChatMsg(roomid, "810", userlist);
+									user.oos.writeObject(obcmr);
+									break;
+								}
+							}	
+						}		
 						RoomVec.add(room);
+						roomid += 1;
 					}
 				} catch (IOException e) {
 					AppendText("ois.readObject() error");
@@ -391,13 +402,19 @@ public class Server extends JFrame {
 
 		private ObjectInputStream ois;
 		private ObjectOutputStream oos;
-		private List<String> userlist = new ArrayList<String>();
+		private Vector userlist = new Vector();
 		public String room_id = "";
 		
-		public ChatRoom(String room_id, List<String> userlist) {
+		public ChatRoom(String room_id, Vector userlist) {
 			this.room_id = room_id;
 			this.userlist = userlist;
 			
+		}
+		public String getRoomId() {
+			return room_id;
+		}
+		public Vector getUserList() {
+			return userlist;
 		}
 	}
 

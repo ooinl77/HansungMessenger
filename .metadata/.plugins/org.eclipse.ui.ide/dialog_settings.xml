@@ -8,4 +8,14 @@
 		<list key="ENABLED_TRANSFERS">
 		</list>
 	</section>
+	<section name="SmartImportWizard">
+		<item key="SmartImportRootWizardPage.STORE_HIDE_ALREADY_OPEN" value="false"/>
+		<item key="SmartImportRootWizardPage.STORE_CLOSE_IMPORTED" value="false"/>
+		<item key="SmartImportRootWizardPage.STORE_NESTED_PROJECTS" value="true"/>
+		<item key="SmartImportRootWizardPage.STORE_CONFIGURE_NATURES" value="true"/>
+		<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+			<item value="C:\Users\ooinl\Downloads\HansungMessenger (1)\HansungMessenger"/>
+			<item value="C:\Users\ooinl\OneDrive\바탕 화면\한성대\3-2\네트워크 프로그래밍\NetP09-java2 (1)\JavaChatServer"/>
+		</list>
+	</section>
 </section>
