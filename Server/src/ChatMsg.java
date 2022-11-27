@@ -8,21 +8,22 @@ import javax.swing.ImageIcon;
 
 class ChatMsg implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private String room_id;
+	private String id;
+	private int room_id;
 	private String code; // 100:로그인, 400:로그아웃, 200:채팅메시지, 300:Image
 	private String data;
-	private List<String> userlist = new ArrayList<String>();
+	//private Vector userlist = new Vector();
+	private String userlist;
 	public ImageIcon img;
 
-	public ChatMsg(String room_id, String code, String msg) {
-		this.room_id = room_id;
+	public ChatMsg(String id, String code, String msg) {
+		this.id = id;
 		this.code = code;
 		this.data = msg;
 	}
-	public ChatMsg(String room_id, String code, String msg, List<String> userlist) {
+	public ChatMsg(int room_id, String code, String userlist) {
 		this.room_id = room_id;
 		this.code = code;
-		this.data = msg;
 		this.userlist = userlist;
 	}
 
@@ -38,11 +39,11 @@ class ChatMsg implements Serializable {
 		return data;
 	}
 
-	public String getRoomId() {
+	public int getRoomId() {
 		return room_id;
 	}
 
-	public void setRoomId(String room_id) {
+	public void setRoomId(int room_id) {
 		this.room_id = room_id;
 	}
 
@@ -54,12 +55,18 @@ class ChatMsg implements Serializable {
 		this.img = img;
 	}
 
-	public List<String> getUserlist() {
+	public String getUserlist() {
 		return userlist;
 	}
 
-	public void setUserlist(List<String> userlist) {
+	public void setUserlist(String userlist) {
 		this.userlist = userlist;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
 	}
 	
 }

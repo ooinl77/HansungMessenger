@@ -382,12 +382,13 @@ public class StartingScreen extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					JLabel room = new JLabel("채팅방 " + roomNum.getText());
+					ChatMsg msg = new ChatMsg(Integer.parseInt(roomNum.getText()), "800", "user user1 user2");
+					SendObject(msg);
 					room.setBorder(new LineBorder(Color.BLACK, 1, false));
 					room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
 					roomVector.add(room);
 					chatRoomPanel.add(room);
 					repaint();
-					ChatRoom chatRoom = new ChatRoom(roomNum.getText());
 					setVisible(false);
 				}
 				
