@@ -14,6 +14,7 @@
 		<item key="SmartImportRootWizardPage.STORE_NESTED_PROJECTS" value="true"/>
 		<item key="SmartImportRootWizardPage.STORE_CONFIGURE_NATURES" value="true"/>
 		<list key="org.eclipse.ui.internal.wizards.datatransfer.SmartImportRootWizardPage.knownSources">
+			<item value="C:\Users\ooinl\eclipse-workspace\HansungMessenger\JavaObjClient"/>
 			<item value="C:\Users\ooinl\Downloads\HansungMessenger (1)\HansungMessenger"/>
 			<item value="C:\Users\ooinl\OneDrive\바탕 화면\한성대\3-2\네트워크 프로그래밍\NetP09-java2 (1)\JavaChatServer"/>
 		</list>

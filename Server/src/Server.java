@@ -41,7 +41,7 @@ public class Server extends JFrame {
 	private Socket client_socket; // accept() 에서 생성된 client 소켓
 	private Vector UserVec = new Vector(); // 연결된 사용자를 저장할 벡터
 	private Vector<ChatRoom> RoomVec = new Vector<ChatRoom>();
-	private Vector<String> userlist = new Vector<String>();
+	private String userlist;
 	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
 
 	/**
@@ -328,6 +328,7 @@ public class Server extends JFrame {
 					Object obcm = null;
 					String msg = null;
 					ChatMsg cm = null;
+					String[] array = null;
 					if (socket == null)
 						break;
 					try {
@@ -351,9 +352,21 @@ public class Server extends JFrame {
 					} else if (cm.getCode().matches("200")) {
 						msg = String.format("[%s] %s", cm.getId(), cm.getData());
 						AppendText(msg); // server 화면에 출력
+						roomid = cm.getRoomId();
 						for(int i=0; i<room_vc.size(); i++) {
-							if(Integer.toString(cm.getRoomId()) == room_vc.get(i).getRoomId()) {
-								
+							if(Integer.toString(roomid) == room_vc.get(i).getRoomId()) {
+								userlist = room_vc.get(i).getUserList();
+								array = userlist.split(" ");
+								for (int j = 0; j < array.length; j++) {
+									for(int k = 0; k < user_vc.size(); k++) {
+										UserService user = (UserService) user_vc.elementAt(k);
+										if (array[j] == user.toString()) {
+											ChatMsg obcmr = new ChatMsg(roomid, "200", userlist);
+											user.oos.writeObject(obcmr);
+											break;
+										}
+									}	
+								}
 							}
 						}
 						
@@ -363,11 +376,12 @@ public class Server extends JFrame {
 					} else if (cm.getCode().matches("800")) {
 						roomid = 1000;
 						userlist = cm.getUserlist();
+						array = userlist.split(" ");
 						ChatRoom room = new ChatRoom(Integer.toString(roomid), userlist);
-						for (int i = 0; i < userlist.size(); i++) {
+						for (int i = 0; i < array.length; i++) {
 							for(int j = 0; j < user_vc.size(); j++) {
 								UserService user = (UserService) user_vc.elementAt(j);
-								if (userlist.elementAt(i) == user.toString()) {
+								if (array[i] == user.toString()) {
 									ChatMsg obcmr = new ChatMsg(roomid, "810", userlist);
 									user.oos.writeObject(obcmr);
 									break;
@@ -402,10 +416,10 @@ public class Server extends JFrame {
 
 		private ObjectInputStream ois;
 		private ObjectOutputStream oos;
-		private Vector userlist = new Vector();
+		private String userlist;
 		public String room_id = "";
 		
-		public ChatRoom(String room_id, Vector userlist) {
+		public ChatRoom(String room_id, String userlist) {
 			this.room_id = room_id;
 			this.userlist = userlist;
 			
@@ -413,7 +427,7 @@ public class Server extends JFrame {
 		public String getRoomId() {
 			return room_id;
 		}
-		public Vector getUserList() {
+		public String getUserList() {
 			return userlist;
 		}
 	}
