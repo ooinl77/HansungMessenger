@@ -28,9 +28,11 @@ import javax.swing.text.StyledDocument;
 public class ChatRoom extends JFrame {
 	
 	private static final long serialVersionUID = 1L;
+	private String room_id;
+	private String userlist;
 	private JPanel contentPane;
 	private JTextField txtInput;
-	private String UserName;
+//	private String UserName;
 	private JButton btnSend;
 	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
 	private Socket socket; // 연결소켓
@@ -63,8 +65,10 @@ public class ChatRoom extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public ChatRoom(String room_id) { // String username, String ip_addr, String port_no) {
+	public ChatRoom(String room_id, String userlist) { // String username, String ip_addr, String port_no) {
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		this.room_id = room_id;
+		this.userlist = userlist;
 		setBounds(100, 100, 374, 565);
 		contentPane = new JPanel();
 		contentPane.setBackground(Color.YELLOW);
@@ -95,9 +99,6 @@ public class ChatRoom extends JFrame {
 		contentPane.add(btnSend);
 		setVisible(true);
 
-//		AppendText("User " + username + " connecting " + ip_addr + " " + port_no);
-//		UserName = username;
-
 		imgBtn = new JButton(imgIcon);
 		imgBtn.setBounds(10, 489, 36, 40);
 		contentPane.add(imgBtn);
@@ -112,18 +113,6 @@ public class ChatRoom extends JFrame {
 		contentPane.add(emoBtn);
 
 		try {
-//			socket = new Socket(ip_addr, Integer.parseInt(port_no));
-//
-//			oos = new ObjectOutputStream(socket.getOutputStream());
-//			oos.flush();
-//			ois = new ObjectInputStream(socket.getInputStream());
-//
-//			//SendMessage("/login " + UserName);
-//			ChatMsg obcm = new ChatMsg(UserName, "100", "Hello");
-//			SendObject(obcm);
-//			
-//			ListenNetwork net = new ListenNetwork();
-//			net.start();
 			TextSendAction action = new TextSendAction();
 			btnSend.addActionListener(action);
 			txtInput.addActionListener(action);
@@ -137,6 +126,10 @@ public class ChatRoom extends JFrame {
 			AppendText("connect error");
 		}
 
+	}
+	
+	public String getRoomId() {
+		return room_id;
 	}
 
 	// Server Message를 수신해서 화면에 표시

@@ -41,7 +41,7 @@ public class Server extends JFrame {
 	private Socket client_socket; // accept() 에서 생성된 client 소켓
 	private Vector UserVec = new Vector(); // 연결된 사용자를 저장할 벡터
 	private Vector<ChatRoom> RoomVec = new Vector<ChatRoom>();
-	private Vector<String> userlist = new Vector<String>();
+	private String userlist;
 	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
 
 	/**
@@ -140,11 +140,20 @@ public class Server extends JFrame {
 	}
 
 	public void AppendObject(ChatMsg msg) {
-		// textArea.append("사용자로부터 들어온 object : " + str+"\n");
-		textArea.append("code = " + msg.getCode() + "\n");
-		textArea.append("id = " + msg.getRoomId() + "\n");
-		textArea.append("data = " + msg.getData() + "\n");
-		textArea.setCaretPosition(textArea.getText().length());
+		if (msg.getRoomId() == null) {
+			textArea.append("code = " + msg.getCode() + "\n");
+			textArea.append("id = " + msg.getId() + "\n");
+			textArea.append("data = " + msg.getData() + "\n");
+			textArea.setCaretPosition(textArea.getText().length());
+		}
+		else {
+			textArea.append("code = " + msg.getCode() + "\n");
+			textArea.append("id = " + msg.getId() + "\n");
+			textArea.append("Roomid = " + msg.getRoomId() + "\n");
+			textArea.append("userlist = " + msg.getUserlist() + "\n");
+			textArea.append("data = "  + msg.getData() + "\n");
+			textArea.setCaretPosition(textArea.getText().length());
+		}
 	}
 
 	// User 당 생성되는 Thread
@@ -161,7 +170,7 @@ public class Server extends JFrame {
 		private Socket client_socket;
 		private Vector user_vc;
 		private Vector<ChatRoom> room_vc;
-		public int roomid = 0;
+		public String roomid;
 		public String UserName = "";
 		public String UserStatus;
 
@@ -328,6 +337,7 @@ public class Server extends JFrame {
 					Object obcm = null;
 					String msg = null;
 					ChatMsg cm = null;
+					String[] array = null;
 					if (socket == null)
 						break;
 					try {
@@ -351,9 +361,21 @@ public class Server extends JFrame {
 					} else if (cm.getCode().matches("200")) {
 						msg = String.format("[%s] %s", cm.getId(), cm.getData());
 						AppendText(msg); // server 화면에 출력
+						roomid = cm.getRoomId();
 						for(int i=0; i<room_vc.size(); i++) {
-							if(Integer.toString(cm.getRoomId()) == room_vc.get(i).getRoomId()) {
-								
+							if(roomid.equals(room_vc.get(i).getRoomId())) {
+								userlist = room_vc.get(i).getUserList();
+								array = userlist.split(" ");
+								for (int j = 0; j < array.length; j++) {
+									for(int k = 0; k < user_vc.size(); k++) {
+										UserService user = (UserService) user_vc.elementAt(k);
+										if (array[j] == user.toString()) {
+											ChatMsg obcmr = new ChatMsg(roomid, "200", userlist);
+											user.oos.writeObject(obcmr);
+											break;
+										}
+									}	
+								}
 							}
 						}
 						
@@ -361,21 +383,23 @@ public class Server extends JFrame {
 						Logout();
 						break;
 					} else if (cm.getCode().matches("800")) {
-						roomid = 1000;
-						//userlist = cm.getUserlist();
-						//ChatRoom room = new ChatRoom(Integer.toString(roomid), userlist);
-						for (int i = 0; i < userlist.size(); i++) {
-							for(int j = 0; j < user_vc.size(); j++) {
-								UserService user = (UserService) user_vc.elementAt(j);
-								if (userlist.elementAt(i) == user.toString()) {
-									//ChatMsg obcmr = new ChatMsg(roomid, "810", userlist);
-									//user.oos.writeObject(obcmr);
+						roomid = cm.getRoomId();
+						userlist = cm.getUserlist();
+						array = userlist.split(" ");
+						ChatRoom room = new ChatRoom(roomid, userlist);
+
+						for (int i = 0; i < user_vc.size(); i++) {
+							for(int j = 0; j < array.length; j++) {
+								UserService user = (UserService) user_vc.elementAt(i);
+								
+								if (array[j].equals(user.UserName)) {
+									ChatMsg obcmr = new ChatMsg("", "810", roomid, userlist, "방 생성");
+									user.WriteOneObject(obcmr);
 									break;
 								}
 							}	
-						}		
-						//RoomVec.add(room);
-						roomid += 1;
+						}
+						RoomVec.add(room);
 					}
 				} catch (IOException e) {
 					AppendText("ois.readObject() error");
@@ -402,7 +426,6 @@ public class Server extends JFrame {
 
 		private ObjectInputStream ois;
 		private ObjectOutputStream oos;
-		//private Vector userlist = new Vector();
 		private String userlist;
 		public String room_id = "";
 		

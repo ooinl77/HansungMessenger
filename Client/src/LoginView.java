@@ -26,7 +26,6 @@ public class LoginView extends JFrame{
 
 	private JTextField txtHansungnavercom;
 	private JPasswordField passwordField;
-	private String id;
 	/**
 	 * Launch the application.
 	 */
@@ -97,7 +96,7 @@ public class LoginView extends JFrame{
 	class LoginAction implements ActionListener {
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			id = txtHansungnavercom.getText();
+			String id = txtHansungnavercom.getText().trim();
 			StartingScreen screen = new StartingScreen(id, "127.0.0.1", "30000");
 			setVisible(false);
 		}

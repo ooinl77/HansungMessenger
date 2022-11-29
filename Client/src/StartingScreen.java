@@ -15,6 +15,8 @@ import java.util.*;
 public class StartingScreen extends JFrame {
 
 	private static final long serialVersionUID = 1L;
+	private String ID;
+	
 	private JPanel contentPane;
 	private JPanel rightPanel = new JPanel();
 	private JPanel chatRoomPanel; // 채팅방 목록
@@ -41,7 +43,7 @@ public class StartingScreen extends JFrame {
 	private FileDialog fd;
 	private StatusDialog statusDialog;
 	private ChatRoomDialog chatRoomDialog;
-	private Vector<JLabel> roomVector;
+	private Vector<ChatRoom> roomVector;
 	private Vector<Friend> friendVector;
 	
 	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
@@ -62,7 +64,8 @@ public class StartingScreen extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
 		
-		roomVector = new Vector<JLabel>();
+		this.ID = id;
+		roomVector = new Vector<ChatRoom>();
 		friendVector = new Vector<Friend>();
 		
 		statusDialog = new StatusDialog(this, "상태 메세지 변경");
@@ -104,7 +107,7 @@ public class StartingScreen extends JFrame {
 			ois = new ObjectInputStream(socket.getInputStream());
 
 			//SendMessage("/login " + UserName);
-			ChatMsg obcm = new ChatMsg(id, "100", "Hello");
+			ChatMsg obcm = new ChatMsg(ID, "100", "Hello");
 			SendObject(obcm);
 			
 			ListenNetwork net = new ListenNetwork();
@@ -136,10 +139,13 @@ public class StartingScreen extends JFrame {
 						cm = (ChatMsg) obcm;
 					} else
 						continue;
+					switch (cm.getCode()) {
+					case "810":
+						ChatRoom room = new ChatRoom(cm.getRoomId(), cm.getUserlist());
+						roomVector.add(room);
+					}
 				} catch (IOException e) {
 					try {
-//							dos.close();
-//							dis.close();
 						ois.close();
 						oos.close();
 						socket.close();
@@ -246,7 +252,7 @@ public class StartingScreen extends JFrame {
 		chatRoomPanel = new JPanel();
 		chatRoomPanel.setBackground(Color.WHITE);
 		for (int i = 0; i< roomVector.size(); i++) {
-			chatRoomPanel.add(roomVector.get(i));
+			//chatRoomPanel.add(roomVector.get(i));
 		}
 		chatRoomPanel.setLayout(new GridLayout(100,1,0,0));
 		
@@ -382,12 +388,12 @@ public class StartingScreen extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					JLabel room = new JLabel("채팅방 " + roomNum.getText());
-					ChatMsg msg = new ChatMsg(Integer.parseInt(roomNum.getText()), "800", "user user1 user2");
+					ChatMsg msg = new ChatMsg(ID, "800", roomNum.getText(), ID + " dongwoo2" , "방 생성");
 					SendObject(msg);
 					room.setBorder(new LineBorder(Color.BLACK, 1, false));
-					room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
-					roomVector.add(room);
-					chatRoomPanel.add(room);
+					//room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
+					//roomVector.add(room);
+					//chatRoomPanel.add(room);
 					repaint();
 					setVisible(false);
 				}
