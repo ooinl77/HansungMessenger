@@ -348,14 +348,6 @@ public class StartingScreen extends JFrame {
 				System.out.println("hi");
 			}
 		}
-		
-		@Override
-		public void mousePressed(MouseEvent e) {
-			JLabel l = (JLabel)e.getSource(); // 클릭된 친구
-			
-			userlist.append(" " + l.getText());
-			System.out.println(userlist.toString());
-		}
 	}
 	
 	// 상태 메세지 변경 
@@ -429,7 +421,15 @@ public class StartingScreen extends JFrame {
 			panel.setLayout(new GridLayout(100,1,0,0));
 			for (int i=0; i<friendVector.size(); i++) {
 				JLabel label = friendVector.get(i);
-				label.addMouseListener(new myMouseAdapter());
+				label.addMouseListener(new MouseAdapter() {
+					@Override
+					public void mousePressed(MouseEvent e) {
+						JLabel l = (JLabel)e.getSource(); // 클릭된 친구
+						
+						userlist.append(" " + l.getText());
+						System.out.println(userlist.toString());
+					}
+				});
 				panel.add(label);
 			}
 			this.add(new JScrollPane(panel), BorderLayout.CENTER);
