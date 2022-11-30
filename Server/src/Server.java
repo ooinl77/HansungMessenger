@@ -10,6 +10,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JLabel;
 import javax.swing.JTextField;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
@@ -40,6 +41,9 @@ public class Server extends JFrame {
 	private ServerSocket socket; // 서버소켓
 	private Socket client_socket; // accept() 에서 생성된 client 소켓
 	private Vector UserVec = new Vector(); // 연결된 사용자를 저장할 벡터
+	private ImageIcon baseProfile = new ImageIcon("img/user.jpg");
+	private String statusMessage = "상태메세지";
+	private Vector<Friend> friendVector = new Vector<Friend>();
 	private Vector<ChatRoom> RoomVec = new Vector<ChatRoom>();
 	private String userlist;
 	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
@@ -356,6 +360,7 @@ public class Server extends JFrame {
 						continue;
 					if (cm.getCode().matches("100")) {
 						UserName = cm.getId();
+						friendVector.add(new Friend(baseProfile, cm.getId(), statusMessage));
 						UserStatus = "O"; // Online 상태
 						Login();
 					} else if (cm.getCode().matches("200")) {
@@ -382,6 +387,9 @@ public class Server extends JFrame {
 					} else if (cm.getCode().matches("400")) { // logout message 처리
 						Logout();
 						break;
+					}else if (cm.getCode().matches("600")) { // logout message 처리
+						ChatMsg friendMsg = new ChatMsg("", "600", cm.getData());
+						WriteOneObject(friendMsg);
 					} else if (cm.getCode().matches("800")) {
 						roomid = cm.getRoomId();
 						userlist = cm.getUserlist();
