@@ -24,6 +24,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Vector;
 import java.awt.event.ActionEvent;
 import javax.swing.SwingConstants;
@@ -125,6 +126,7 @@ public class Server extends JFrame {
 					UserVec.add(new_user); // 새로운 참가자 배열에 추가
 					new_user.start(); // 만든 객체의 스레드 실행
 					AppendText("현재 참가자 수 " + UserVec.size());
+					
 				} catch (IOException e) {
 					AppendText("accept() error");
 					// System.exit(0);
@@ -140,11 +142,20 @@ public class Server extends JFrame {
 	}
 
 	public void AppendObject(ChatMsg msg) {
-		// textArea.append("사용자로부터 들어온 object : " + str+"\n");
-		textArea.append("code = " + msg.getCode() + "\n");
-		textArea.append("id = " + msg.getRoomId() + "\n");
-		textArea.append("data = " + msg.getData() + "\n");
-		textArea.setCaretPosition(textArea.getText().length());
+		if (msg.getRoomId() == null) {
+			textArea.append("code = " + msg.getCode() + "\n");
+			textArea.append("id = " + msg.getId() + "\n");
+			textArea.append("data = " + msg.getData() + "\n");
+			textArea.setCaretPosition(textArea.getText().length());
+		}
+		else {
+			textArea.append("code = " + msg.getCode() + "\n");
+			textArea.append("id = " + msg.getId() + "\n");
+			textArea.append("Roomid = " + msg.getRoomId() + "\n");
+			textArea.append("userlist = " + msg.getUserlist() + "\n");
+			textArea.append("data = "  + msg.getData() + "\n");
+			textArea.setCaretPosition(textArea.getText().length());
+		}
 	}
 
 	// User 당 생성되는 Thread
@@ -161,7 +172,7 @@ public class Server extends JFrame {
 		private Socket client_socket;
 		private Vector user_vc;
 		private Vector<ChatRoom> room_vc;
-		public int roomid = 0;
+		public String roomid;
 		public String UserName = "";
 		public String UserStatus;
 
@@ -198,16 +209,10 @@ public class Server extends JFrame {
 
 		public void Login() {
 			AppendText("새로운 참가자 " + UserName + " 입장.");
-			WriteOne("Welcome to Java chat server\n");
-			WriteOne(UserName + "님 환영합니다.\n"); // 연결된 사용자에게 정상접속을 알림
-			String msg = "[" + UserName + "]님이 입장 하였습니다.\n";
-			WriteOthers(msg); // 아직 user_vc에 새로 입장한 user는 포함되지 않았다.
 		}
 
 		public void Logout() {
-			String msg = "[" + UserName + "]님이 퇴장 하였습니다.\n";
 			UserVec.removeElement(this); // Logout한 현재 객체를 벡터에서 지운다
-			WriteAll(msg); // 나를 제외한 다른 User들에게 전송
 			AppendText("사용자 " + "[" + UserName + "] 퇴장. 현재 참가자 수 " + UserVec.size());
 		}
 
@@ -354,15 +359,15 @@ public class Server extends JFrame {
 						AppendText(msg); // server 화면에 출력
 						roomid = cm.getRoomId();
 						for(int i=0; i<room_vc.size(); i++) {
-							if(Integer.toString(roomid) == room_vc.get(i).getRoomId()) {
+							if(roomid.equals(room_vc.get(i).getRoomId())) {			
 								userlist = room_vc.get(i).getUserList();
 								array = userlist.split(" ");
-								for (int j = 0; j < array.length; j++) {
-									for(int k = 0; k < user_vc.size(); k++) {
-										UserService user = (UserService) user_vc.elementAt(k);
-										if (array[j] == user.toString()) {
-											ChatMsg obcmr = new ChatMsg(roomid, "200", userlist);
-											user.oos.writeObject(obcmr);
+								for (int j = 0; j < user_vc.size(); j++) {
+									for(int k = 0; k < array.length; k++) {
+										UserService user = (UserService) user_vc.elementAt(j);
+										if (array[k].equals(user.UserName)) {
+											ChatMsg obcmr = new ChatMsg(cm.getId(), "200", roomid, userlist, cm.getData());
+											user.WriteOneObject(obcmr);
 											break;
 										}
 									}	
@@ -374,22 +379,23 @@ public class Server extends JFrame {
 						Logout();
 						break;
 					} else if (cm.getCode().matches("800")) {
-						roomid = 1000;
+						Random random = new Random();
+						random.setSeed(System.currentTimeMillis());
+						roomid = random.toString();
 						userlist = cm.getUserlist();
 						array = userlist.split(" ");
-						ChatRoom room = new ChatRoom(Integer.toString(roomid), userlist);
-						for (int i = 0; i < array.length; i++) {
-							for(int j = 0; j < user_vc.size(); j++) {
-								UserService user = (UserService) user_vc.elementAt(j);
-								if (array[i] == user.toString()) {
-									ChatMsg obcmr = new ChatMsg(roomid, "810", userlist);
-									user.oos.writeObject(obcmr);
+						ChatRoom room = new ChatRoom(roomid, userlist);
+						for (int i = 0; i < user_vc.size(); i++) {
+							for(int j = 0; j < array.length; j++) {
+								UserService user = (UserService) user_vc.elementAt(i);	
+								if (array[j].equals(user.UserName)) {
+									ChatMsg obcmr = new ChatMsg(roomid,"810", userlist);
+									user.WriteOneObject(obcmr);
 									break;
 								}
 							}	
-						}		
+						}
 						RoomVec.add(room);
-						roomid += 1;
 					}
 				} catch (IOException e) {
 					AppendText("ois.readObject() error");
