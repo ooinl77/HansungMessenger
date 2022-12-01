@@ -3,19 +3,25 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.*;
+import java.net.Socket;
 import java.util.*;
 
 public class StartingScreen extends JFrame {
 
 	private static final long serialVersionUID = 1L;
+	private String UserID;
+	private String RoomID;
+	private String userlist;
+	private String[] array;
 	private JPanel contentPane;
 	private JPanel rightPanel = new JPanel();
-	private JPanel friendPanel; // 친구 목록
 	private JPanel chatRoomPanel; // 채팅방 목록
 	private ImageIcon baseProfile = new ImageIcon("img/user.jpg");
 	private ImageIcon profilePicture = new ImageIcon("img/user.jpg");  
@@ -34,15 +40,26 @@ public class StartingScreen extends JFrame {
 	private JButton button2 = new JButton(img2); // 채팅방 목록 이동 버튼
 	private JScrollPane chatRoomList; // 채팅방 목록 창
 	private JScrollPane friendListPane; // 친구 목록 창
+	private JScrollPane friendPanel; // 친구 목록
 	
 	private JFrame frame;
 	private FileDialog fd;
 	private StatusDialog statusDialog;
 	private ChatRoomDialog chatRoomDialog;
-	private Vector<JLabel> roomVector;
-	private Vector<JLabel> friendVector;
+	private Vector<ChatRoom> roomVector;
+	private Vector<Friend> friendVector;
 	
-	public StartingScreen() {
+	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
+	private Socket socket; // 연결소켓
+	private InputStream is;
+	private OutputStream os;
+	private DataInputStream dis;
+	private DataOutputStream dos;
+
+	private ObjectInputStream ois;
+	private ObjectOutputStream oos;
+	
+	public StartingScreen(String id, String ip_addr, String port_no) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 400, 600);
 		contentPane = new JPanel();
@@ -50,8 +67,9 @@ public class StartingScreen extends JFrame {
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
 		
-		roomVector = new Vector<JLabel>();
-		friendVector = new Vector<JLabel>();
+		this.UserID = id;
+		roomVector = new Vector<ChatRoom>();
+		friendVector = new Vector<Friend>();
 		
 		statusDialog = new StatusDialog(this, "상태 메세지 변경");
 		chatRoomDialog = new ChatRoomDialog(this, "채팅방 생성");
@@ -64,7 +82,7 @@ public class StartingScreen extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				rightPanel.removeAll();
-				setFriendPanel();
+				setFriendPanel(id);
 				rightPanel.updateUI();
 			}
 		});
@@ -81,14 +99,91 @@ public class StartingScreen extends JFrame {
 		
 		contentPane.add(leftPanel, BorderLayout.WEST);
 		contentPane.add(rightPanel, BorderLayout.CENTER);
-		setFriendPanel(); // 초기화면
+		setFriendPanel(id); // 초기화면
 		setVisible(true);
+		
+		try {
+			socket = new Socket(ip_addr, Integer.parseInt(port_no));
+
+			oos = new ObjectOutputStream(socket.getOutputStream());
+			oos.flush();
+			ois = new ObjectInputStream(socket.getInputStream());
+
+			//SendMessage("/login " + UserName);
+			ChatMsg obcm = new ChatMsg(UserID, "100", "Hello");
+			SendObject(obcm);
+			
+			ListenNetwork net = new ListenNetwork();
+			net.start();
+
+		} catch (NumberFormatException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
-	private void setFriendPanel() {
+	// Server Message를 수신해서 화면에 표시
+	class ListenNetwork extends Thread {
+		public void run() {
+			while (true) {
+				try {
+					Object obcm = null;
+					String msg = null;
+					ChatMsg cm;
+					try {
+						obcm = ois.readObject();
+					} catch (ClassNotFoundException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+						break;
+					}
+					if (obcm == null)
+						break;
+					if (obcm instanceof ChatMsg) {
+						cm = (ChatMsg) obcm; 
+					} else
+						continue;
+					switch (cm.getCode()) {
+					case "200":
+						for(int i=0; i<roomVector.size(); i++) {
+							if((cm.getRoomId().equals(roomVector.get(i).getRoomId())) && cm.getId() != UserID) {
+								roomVector.get(i).AppendText(cm.getData());			
+							}
+						}
+						break;
+					case "810":
+						ChatRoom room = new ChatRoom(cm.getRoomId(), cm.getUserlist(), StartingScreen.this, UserID);
+						roomVector.add(room);
+						break;
+					}
+				} catch (IOException e) {
+					try {
+						ois.close();
+						oos.close();
+						socket.close();
+						break;
+					} catch (Exception ee) {
+						break;
+					} // catch문 끝
+				} // 바깥 catch문끝
+
+			}
+		}
+	}
+	
+	public String getID() {
+		return UserID;
+	}
+	
+	// 다른 유저가 로그인 하면 친구 목록에 추가
+	public void AddFriend(ImageIcon icon, String id, String statusMessage) {
+		
+	}
+	
+	private void setFriendPanel(String id) {
 		rightPanel.setBackground(Color.WHITE);
 		rightPanel.setLayout(new BorderLayout(0, 0));
-		rightPanel.add(myProfilePanel(profilePicture, statusMessage), BorderLayout.NORTH);
+		rightPanel.add(myProfilePanel(id, profilePicture, statusMessage), BorderLayout.NORTH);
 		rightPanel.add(friendListPanel(), BorderLayout.CENTER);
 	}
 	
@@ -98,12 +193,11 @@ public class StartingScreen extends JFrame {
 	}
 	
 	// user profile, 창을 바꿔도 프로필 사진과 상태메세지 유지
-	private JPanel myProfilePanel(ImageIcon profilePicture, String statusMessage) {
+	private JPanel myProfilePanel(String id ,ImageIcon profilePicture, String statusMessage) {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout(0,0));
 		panel.setBackground(Color.WHITE);
 		myMouseAdapter listener = new myMouseAdapter();
-		String id = "id";
 		//profile = new JLabel(id, baseProfile, SwingConstants.LEFT);
 		profile = new JLabel(id, profilePicture, SwingConstants.LEFT);
 		status = new JLabel(statusMessage);
@@ -120,7 +214,7 @@ public class StartingScreen extends JFrame {
 	private JPanel friendListPanel() {
 		JPanel panel = new JPanel();
 		panel.setLayout(new BorderLayout(0,0));
-		friendListPane = new JScrollPane(friendList());
+		friendListPane = new JScrollPane();
 		panel.add(northPanel(), BorderLayout.NORTH);
 		panel.add(friendListPane, BorderLayout.CENTER);
 		return panel;
@@ -139,15 +233,15 @@ public class StartingScreen extends JFrame {
 		return panel;
 	}
 	
-	private JPanel friendList() {
-		friendPanel = new JPanel();
-		friendPanel.setBackground(Color.WHITE);
-		friendPanel.setLayout(new GridLayout(100,1,0,0));
-		for (int i=0; i<friendVector.size(); i++) {
-			friendPanel.add(friendVector.get(i));
-		}
-		return friendPanel;
-	}
+//	private JPanel friendList() {
+//		friendPanel = new JScrollPane();
+//		friendPanel.setBackground(Color.WHITE);
+//		friendPanel.setLayout(new GridLayout(100,1,0,0));
+//		for (int i=0; i<friendVector.size(); i++) {
+//			//friendPanel.add(temporaryLostComponent, friendVector.get(i));
+//		}
+//		return friendPanel;
+//	}
 	
 	// 채팅방 목록 
 	private JPanel chatRoomPanel() {
@@ -174,7 +268,7 @@ public class StartingScreen extends JFrame {
 		chatRoomPanel = new JPanel();
 		chatRoomPanel.setBackground(Color.WHITE);
 		for (int i = 0; i< roomVector.size(); i++) {
-			chatRoomPanel.add(roomVector.get(i));
+			//chatRoomPanel.add(roomVector.get(i));
 		}
 		chatRoomPanel.setLayout(new GridLayout(100,1,0,0));
 		
@@ -207,12 +301,7 @@ public class StartingScreen extends JFrame {
 			// 채팅방 추가 버튼
 			else if (e.getSource() == addRoom) {
 				chatRoomDialog.setVisible(true);
-//				JLabel room = new JLabel("채팅방");
-//				room.setBorder(new LineBorder(Color.BLACK, 1, false));
-//				room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
-//				roomVector.add(room);
-//				chatRoomPanel.add(room);
-//				ChatRoom chatRoom = new ChatRoom();
+
 			}
 			// 설정 버튼 
 			else if (e.getSource() == setting) {
@@ -305,10 +394,33 @@ public class StartingScreen extends JFrame {
 		public ChatRoomDialog(JFrame frame, String title) {
 			super(frame, title);
 			setLayout(new BorderLayout());
-			this.add(new JLabel("방 번호"), BorderLayout.NORTH);
-			this.add(new JScrollPane(friendList()), BorderLayout.CENTER);
+			//this.add(new JScrollPane(friendList()), BorderLayout.CENTER);
 			this.add(createBtn, BorderLayout.SOUTH);
 			setSize(300,500);
+			
+			createBtn.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					JLabel room = new JLabel("채팅방");
+					ChatMsg msg = new ChatMsg(UserID, "800", UserID + " dongwoo2");
+					SendObject(msg);
+					room.setBorder(new LineBorder(Color.BLACK, 1, false));
+					//room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
+					//roomVector.add(room);
+					//chatRoomPanel.add(room);
+					repaint();
+					setVisible(false);
+				}
+				
+			});
+		}
+	}
+	
+	public void SendObject(Object ob) { // 서버로 메세지를 보내는 메소드
+		try {
+			oos.writeObject(ob);
+		} catch (IOException e) {
+			// textArea.append("메세지 송신 에러!!\n");
 		}
 	}
 }
