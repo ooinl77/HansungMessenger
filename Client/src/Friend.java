@@ -16,11 +16,11 @@ public class Friend extends JLabel{
 		this.id = id;
 		this.statusMessage = statusMessage;
 		
-		this.setText(id);
+		//this.setText(id);
 		this.setBackground(Color.LIGHT_GRAY);
 		this.setLayout(new BorderLayout(0,0));
 		this.add(new JLabel(icon), BorderLayout.WEST);
-		//this.add(new JLabel(id), BorderLayout.CENTER);
+		this.add(new JLabel(id), BorderLayout.CENTER);
 		this.add(new JLabel(statusMessage), BorderLayout.EAST);
 	}
 

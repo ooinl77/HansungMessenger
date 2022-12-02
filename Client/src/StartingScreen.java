@@ -7,7 +7,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.*;
 import java.net.Socket;
 import java.util.*;
@@ -37,8 +36,6 @@ public class StartingScreen extends JFrame {
 	private JButton button2 = new JButton(img2); // 채팅방 목록 이동 버튼
 	private JScrollPane chatRoomList; // 채팅방 목록 창
 	private JScrollPane friendListPane; // 친구 목록 창
-	//private JTextPane friendList;
-	//private JScrollPane friendPanel; // 친구 목록
 	
 	private JFrame frame;
 	private FileDialog fd;
@@ -68,6 +65,7 @@ public class StartingScreen extends JFrame {
 		this.ID = id;
 		roomVector = new Vector<ChatRoom>();
 		friendVector = new Vector<Friend>();
+		chatRoomDialog = new ChatRoomDialog("채팅방 생성");
 		userlist = new StringBuffer(ID);
 		statusDialog = new StatusDialog(this, "상태 메세지 변경");
 		addFriendDialog = new addFriendDialog(this, "친구 추가");
@@ -140,12 +138,65 @@ public class StartingScreen extends JFrame {
 					} else
 						continue;
 					switch (cm.getCode()) {
+					case "200":
+						String[] argv = cm.getData().split(" ");
+						for (int i = 0; i < roomVector.size(); i++) {
+							if (cm.getRoomId().equals(roomVector.get(i).getRoomId()) && !(cm.getId().equals(ID))) {
+								if(argv[1].equals("(하하)")) {
+									roomVector.get(i).AppendText("[" + cm.getId() + "]");
+									roomVector.get(i).AppendImage(new ImageIcon("img/haha.jpg"));
+								}
+								else if(argv[1].equals("(굿)")) {
+									roomVector.get(i).AppendText("[" + cm.getId() + "]");
+									roomVector.get(i).AppendImage(new ImageIcon("img/good.jpg"));
+								}
+								else if(argv[1].equals("(뿌듯)")) {
+									roomVector.get(i).AppendText("[" + cm.getId() + "]");
+									roomVector.get(i).AppendImage(new ImageIcon("img/bbudeut.jpg"));
+								}
+								else if(argv[1].equals("(열받아)")) {
+									roomVector.get(i).AppendText("[" + cm.getId() + "]");
+									roomVector.get(i).AppendImage(new ImageIcon("img/angry.jpg"));
+								}
+								else if(argv[1].equals("(졸려)")) {
+									roomVector.get(i).AppendText("[" + cm.getId() + "]");
+									roomVector.get(i).AppendImage(new ImageIcon("img/sleepy.jpg"));
+								}
+								else if(argv[1].equals("(씨익)")) {
+									roomVector.get(i).AppendText("[" + cm.getId() + "]");
+									roomVector.get(i).AppendImage(new ImageIcon("img/ssiik.jpg"));
+								}
+								else if(argv[1].equals("(감동)")) {
+									roomVector.get(i).AppendText("[" + cm.getId() + "]");
+									roomVector.get(i).AppendImage(new ImageIcon("img/gamdong.jpg"));
+								}
+								else if(argv[1].equals("(흑흑)")) {
+									roomVector.get(i).AppendText("[" + cm.getId() + "]");
+									roomVector.get(i).AppendImage(new ImageIcon("img/heukheuk.jpg"));
+								}
+								else {
+									roomVector.get(i).AppendText(cm.getData());	
+								}
+							}		
+						}
+						break;
+					case "300":
+						for (int i = 0; i < roomVector.size(); i++) {
+							if (cm.getRoomId().equals(roomVector.get(i).getRoomId()) && !(cm.getId().equals(ID))) {
+								roomVector.get(i).AppendText("[" + cm.getId() + "]");
+								roomVector.get(i).AppendImage(cm.img);
+							}
+								
+						}
+						break;
 					case "600":
 						AddFriend(baseProfile, cm.getData(), statusMessage);
 						break;
 					case "810":
-						ChatRoom room = new ChatRoom(cm.getRoomId(), cm.getUserlist());
+						ChatRoom room = new ChatRoom(cm.getRoomId(), cm.getUserlist(), StartingScreen.this, ID);
+						room.setVisible(false);
 						roomVector.add(room);
+						AddRoomList();
 						break;
 					}
 				} catch (IOException e) {
@@ -167,6 +218,9 @@ public class StartingScreen extends JFrame {
 	public void AddFriend(ImageIcon icon, String id, String statusMessage) {
 		Friend f = new Friend(icon, id, statusMessage);
 		friendVector.add(f);
+		rightPanel.removeAll();
+		setFriendPanel(ID);
+		rightPanel.updateUI();
 	}
 	
 	private void setFriendPanel(String id) {
@@ -216,7 +270,6 @@ public class StartingScreen extends JFrame {
 		for (int i = 0; i < friendVector.size(); i++) {
 			if (!ID.equals(friendVector.get(i).getID()))
 				panel.add(friendVector.get(i));
-				repaint();
 		}
 		return panel;
 	}
@@ -255,13 +308,34 @@ public class StartingScreen extends JFrame {
 		return panel;
 	}
 	
+	public void AddRoomList() {
+		rightPanel.removeAll();
+		setChatRoomPanel();
+		rightPanel.updateUI();
+	}
+	
+	// 채팅방 목록
 	private JPanel chatRoomList() {
 		chatRoomPanel = new JPanel();
 		chatRoomPanel.setBackground(Color.WHITE);
+		chatRoomPanel.setLayout(new GridLayout(20,1,0,0));
 		for (int i = 0; i< roomVector.size(); i++) {
-			//chatRoomPanel.add(roomVector.get(i));
+			ChatRoomList list = new ChatRoomList(baseProfile, roomVector.get(i).getUserList(), roomVector.get(i).getRoomId());
+			list.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mouseClicked(MouseEvent e) {
+					if (e.getClickCount() == 2) { // 더블 클릭 시 채팅방 띄움
+						for (int i = 0; i< roomVector.size(); i++) {
+							if (roomVector.get(i).getRoomId().equals(list.getRoomID())) {
+								roomVector.get(i).setVisible(true);
+								break;
+							}
+						}
+					}
+				}
+			});
+			chatRoomPanel.add(list);
 		}
-		chatRoomPanel.setLayout(new GridLayout(100,1,0,0));
 		
 		return chatRoomPanel;
 	}
@@ -292,8 +366,10 @@ public class StartingScreen extends JFrame {
 			// 채팅방 추가 버튼
 			else if (e.getSource() == addRoom) {
 				chatRoomDialog = new ChatRoomDialog("채팅방 생성");
+				userlist.setLength(0);
+				userlist.append(ID);
 				chatRoomDialog.setVisible(true);
-
+				
 			}
 			// 설정 버튼 
 			else if (e.getSource() == setting) {
@@ -342,10 +418,6 @@ public class StartingScreen extends JFrame {
 			// 상태 메시지 변경 
 			else if (e.getSource() == status) {
 				statusDialog.setVisible(true);
-			}
-			// 채팅방 띄우기
-			else if (l.getText().contains("채팅방") && e.getClickCount() == 2) { // 더블 클릭 시 
-				System.out.println("hi");
 			}
 		}
 	}
@@ -417,23 +489,22 @@ public class StartingScreen extends JFrame {
 			//super(frame, title);
 			setLayout(new BorderLayout());
 			this.add(roomNum, BorderLayout.NORTH);
+			this.add(createBtn, BorderLayout.SOUTH);
 			JPanel panel = new JPanel();
+			
 			panel.setLayout(new GridLayout(100,1,0,0));
 			for (int i=0; i<friendVector.size(); i++) {
-				JLabel label = friendVector.get(i);
+				Friend label = friendVector.get(i);
 				label.addMouseListener(new MouseAdapter() {
 					@Override
-					public void mousePressed(MouseEvent e) {
-						JLabel l = (JLabel)e.getSource(); // 클릭된 친구
-						
-						userlist.append(" " + l.getText());
-						System.out.println(userlist.toString());
+					public void mouseClicked(MouseEvent e) {
+						userlist.append(" " + label.getID());
+						System.out.println(userlist.toString() + "****");
 					}
 				});
 				panel.add(label);
 			}
 			this.add(new JScrollPane(panel), BorderLayout.CENTER);
-			this.add(createBtn, BorderLayout.SOUTH);
 			setSize(300,500);
 			
 			createBtn.addActionListener(new ActionListener() {
@@ -443,10 +514,6 @@ public class StartingScreen extends JFrame {
 					ChatMsg msg = new ChatMsg(ID, "800", roomNum.getText(), userlist.toString() , "방 생성");
 					SendObject(msg);
 					room.setBorder(new LineBorder(Color.BLACK, 1, false));
-					//room.addMouseListener(new myMouseAdapter()); // 클릭 시 채팅방 띄우기 기능
-					//roomVector.add(room);
-					//chatRoomPanel.add(room);
-					repaint();
 					setVisible(false);
 				}
 				

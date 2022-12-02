@@ -30,6 +30,8 @@ public class ChatRoom extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private String room_id;
 	private String userlist;
+	private StartingScreen mainview;
+	private String ID;
 	private JPanel contentPane;
 	private JTextField txtInput;
 //	private String UserName;
@@ -65,10 +67,12 @@ public class ChatRoom extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	public ChatRoom(String room_id, String userlist) { // String username, String ip_addr, String port_no) {
+	public ChatRoom(String room_id, String userlist, StartingScreen mainview, String ID) { 
 		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.room_id = room_id;
 		this.userlist = userlist;
+		this.mainview = mainview;
+		this.ID = ID;
 		setBounds(100, 100, 374, 565);
 		contentPane = new JPanel();
 		contentPane.setBackground(Color.YELLOW);
@@ -132,72 +136,10 @@ public class ChatRoom extends JFrame {
 		return room_id;
 	}
 
-	// Server Message를 수신해서 화면에 표시
-	class ListenNetwork extends Thread {
-		public void run() {
-//			while (true) {
-//				try {
-//					Object obcm = null;
-//					String msg = null;
-//					ChatMsg cm;
-//					try {
-//						obcm = ois.readObject();
-//					} catch (ClassNotFoundException e) {
-//						// TODO Auto-generated catch block
-//						e.printStackTrace();
-//						break;
-//					}
-//					if (obcm == null)
-//						break;
-//					if (obcm instanceof ChatMsg) {
-//						cm = (ChatMsg) obcm;
-//						msg = String.format("[%s] %s", cm.getId(), cm.getData());
-//					} else
-//						continue;
-//					switch (cm.getCode()) {
-//					case "200": // chat message
-//						if(cm.getData().equals("(하하)")) {
-//							AppendText("[" + cm.getId() + "]");
-//							AppendImage(new ImageIcon("img/haha.jpg"));
-//						}
-//						else if(cm.getData().equals("(굿)")) {
-//							AppendText("[" + cm.getId() + "]");
-//							AppendImage(new ImageIcon("img/good.jpg"));
-//						}
-//						else 
-//							AppendText(msg);
-//						break;
-//					case "300": // Image 첨부
-//						AppendText("[" + cm.getId() + "]");
-//						AppendImage(cm.img);
-//						break;
-//					case "500":
-//						String[] user = cm.getData().split("\n");
-//						v.removeAll(v);
-//						v.add("User list\n");
-//						v.add("Name\tStatus\n");
-//						for(int i=0; i<user.length; i++) {
-//							v.add(user[i]);
-//						}
-//						list.setListData(v);
-//						break;
-//					}
-//				} catch (IOException e) {
-//					AppendText("ois.readObject() error");
-//					try {
-//						ois.close();
-//						oos.close();
-//						socket.close();
-//						break;
-//					} catch (Exception ee) {
-//						break;
-//					} // catch문 끝
-//				} // 바깥 catch문끝
-//
-//			}
-		}
+	public String getUserList() {
+		return userlist;
 	}
-
+	
 	// keyboard enter key 치면 서버로 전송
 	class TextSendAction implements ActionListener {
 		@Override
@@ -205,9 +147,11 @@ public class ChatRoom extends JFrame {
 			// Send button을 누르거나 메시지 입력하고 Enter key 치면
 			if (e.getSource() == btnSend || e.getSource() == txtInput) {
 				String msg = null;
-				// msg = String.format("[%s] %s\n", UserName, txtInput.getText());
 				msg = txtInput.getText();
-				SendMessage(msg);
+				
+				ChatMsg obcm = new ChatMsg(ID, "200", room_id, userlist, msg);
+				mainview.SendObject(obcm);
+				
 				txtInput.setText(""); // 메세지를 보내고 나면 메세지 쓰는창을 비운다.
 				txtInput.requestFocus(); // 메세지를 보내고 커서를 다시 텍스트 필드로 위치시킨다
 				
@@ -269,8 +213,8 @@ public class ChatRoom extends JFrame {
 				fd = new FileDialog(frame, "이미지 선택", FileDialog.LOAD);
 			
 				fd.setVisible(true);
+				ChatMsg obcmr = new ChatMsg(ID, "300", room_id, userlist, "IMG");
 				
-				//ChatMsg obcm = new ChatMsg(UserName, "300", "IMG");
 				ImageIcon img = new ImageIcon(fd.getDirectory() + fd.getFile());
 				Image ori_img = img.getImage();
 				
@@ -303,8 +247,8 @@ public class ChatRoom extends JFrame {
 					}
 				}
 				catch(Exception ex) {}
-				//obcm.setImg(img);
-				//SendObject(obcm);
+				obcmr.setImg(img);
+				mainview.SendObject(obcmr);
 			}
 		}
 	}
@@ -321,7 +265,6 @@ public class ChatRoom extends JFrame {
 	// 화면에 출력
 	public void AppendText(String msg) {
 //		textArea.append(msg + "\n");
-		AppendIcon(icon2);
 		msg = msg.trim(); // 앞뒤 blank와 \n을 제거한다
 		StyleConstants.setAlignment(left,StyleConstants.ALIGN_LEFT);
 		try {
@@ -329,10 +272,6 @@ public class ChatRoom extends JFrame {
 			doc.insertString(doc.getLength(), msg + "\n", left);
 		}
 		catch(Exception ex) {}
-		// 끝으로 이동
-//		int len = textArea.getDocument().getLength();
-//		textArea.setCaretPosition(len);
-//		textArea.replaceSelection(msg + "\n");
 	}
 
 	public void AppendImage(ImageIcon ori_icon) {
@@ -393,32 +332,6 @@ public class ChatRoom extends JFrame {
 		return packet;
 	}
 
-	// Server에게 network으로 전송
-	public void SendMessage(String msg) {
-//		try {
-//			ChatMsg obcm = new ChatMsg(UserName, "200", msg);
-//			oos.writeObject(obcm);
-//		} catch (IOException e) {
-//			AppendText("oos.writeObject() error");
-//			try {
-//				ois.close();
-//				oos.close();
-//				socket.close();
-//			} catch (IOException e1) {
-//				e1.printStackTrace();
-//				System.exit(0);
-//			}
-//		}
-	}
-
-	public void SendObject(Object ob) { // 서버로 메세지를 보내는 메소드
-		try {
-			oos.writeObject(ob);
-		} catch (IOException e) {
-			// textArea.append("메세지 송신 에러!!\n");
-			AppendText("SendObject Error");
-		}
-	}
 	
 	// 이모티콘 창 
 	class EmoticonDialog extends JDialog {

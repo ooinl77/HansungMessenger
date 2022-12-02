@@ -364,6 +364,7 @@ public class Server extends JFrame {
 						UserStatus = "O"; // Online 상태
 						Login();
 					} else if (cm.getCode().matches("200")) {
+						System.out.println(RoomVec.size());
 						msg = String.format("[%s] %s", cm.getId(), cm.getData());
 						AppendText(msg); // server 화면에 출력
 						roomid = cm.getRoomId();
@@ -374,8 +375,8 @@ public class Server extends JFrame {
 								for (int j = 0; j < array.length; j++) {
 									for(int k = 0; k < user_vc.size(); k++) {
 										UserService user = (UserService) user_vc.elementAt(k);
-										if (array[j] == user.toString()) {
-											ChatMsg obcmr = new ChatMsg(roomid, "200", userlist);
+										if (array[j].equals(user.UserName)) {
+											ChatMsg obcmr = new ChatMsg(cm.getId(), "200", roomid, userlist, msg);
 											user.oos.writeObject(obcmr);
 											break;
 										}
@@ -383,11 +384,28 @@ public class Server extends JFrame {
 								}
 							}
 						}
-						
+					} else if (cm.getCode().matches("300")) { // logout message 처리
+						for(int i=0; i<room_vc.size(); i++) {
+							if(roomid.equals(room_vc.get(i).getRoomId())) {
+								userlist = room_vc.get(i).getUserList();
+								array = userlist.split(" ");
+								for (int j = 0; j < array.length; j++) {
+									for(int k = 0; k < user_vc.size(); k++) {
+										UserService user = (UserService) user_vc.elementAt(k);
+										if (array[j].equals(user.UserName)) {
+											System.out.println(cm.getRoomId());
+											//ChatMsg obcmr2 = new ChatMsg(cm.getId(), "300", roomid, userlist, msg);
+											user.oos.writeObject(cm);
+											break;
+										}
+									}	
+								}
+							}
+						}
 					} else if (cm.getCode().matches("400")) { // logout message 처리
 						Logout();
 						break;
-					}else if (cm.getCode().matches("600")) { // logout message 처리
+					} else if (cm.getCode().matches("600")) { // logout message 처리
 						ChatMsg friendMsg = new ChatMsg("", "600", cm.getData());
 						WriteOneObject(friendMsg);
 					} else if (cm.getCode().matches("800")) {
