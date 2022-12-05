@@ -320,24 +320,6 @@ public class Server extends JFrame {
 		public void run() {
 			while (true) { // 사용자 접속을 계속해서 받기 위해 while문
 				try {
-					// String msg = dis.readUTF();
-//					byte[] b = new byte[BUF_LEN];
-//					int ret;
-//					ret = dis.read(b);
-//					if (ret < 0) {
-//						AppendText("dis.read() < 0 error");
-//						try {
-//							dos.close();
-//							dis.close();
-//							client_socket.close();
-//							Logout();
-//							break;
-//						} catch (Exception ee) {
-//							break;
-//						} // catch문 끝
-//					}
-//					String msg = new String(b, "euc-kr");
-//					msg = msg.trim(); // 앞뒤 blank NULL, \n 모두 제거
 					Object obcm = null;
 					String msg = null;
 					ChatMsg cm = null;
@@ -405,9 +387,15 @@ public class Server extends JFrame {
 					} else if (cm.getCode().matches("400")) { // logout message 처리
 						Logout();
 						break;
-					} else if (cm.getCode().matches("600")) { // logout message 처리
-						ChatMsg friendMsg = new ChatMsg("", "600", cm.getData());
-						WriteOneObject(friendMsg);
+					} else if (cm.getCode().matches("600")) { 
+						for (int i =0; i<user_vc.size(); i++) {
+							UserService user = (UserService) user_vc.elementAt(i);
+							if (user.UserName.equals(cm.getData())) {
+								ChatMsg friendMsg = new ChatMsg("", "600", cm.getData());
+								WriteOneObject(friendMsg);
+								break;
+							}
+						}
 					} else if (cm.getCode().matches("800")) {
 						roomid = cm.getRoomId();
 						userlist = cm.getUserlist();

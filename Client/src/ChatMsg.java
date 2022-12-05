@@ -24,7 +24,7 @@ class ChatMsg implements Serializable {
 		this.userlist = userlist;
 		this.data = msg;
 	}
-
+	
 	public String getCode() {
 		return code;
 	}

@@ -37,6 +37,7 @@ public class LoginView extends JFrame{
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
+					
 				}
 			}
 		});
@@ -69,19 +70,12 @@ public class LoginView extends JFrame{
 		btnNewButton.addActionListener(login);
 		btnNewButton.setBounds(102, 301, 170, 28);
 		panel.add(btnNewButton);
-		
-		passwordField = new JPasswordField();
-		passwordField.setBounds(102, 263, 170, 28);
-		passwordField.addActionListener(login);
-		panel.add(passwordField);
-		
+			
 		JLabel lblNewLabel = new JLabel("이메일");
 		lblNewLabel.setBounds(39, 243, 50, 15);
 		panel.add(lblNewLabel);
 		
-		JLabel lblNewLabel_1 = new JLabel("비밀번호");
-		lblNewLabel_1.setBounds(39, 269, 50, 15);
-		panel.add(lblNewLabel_1);
+
 		
 		JLabel lblNewLabel_2 = new JLabel("");
 		ImageIcon icon = new ImageIcon("img/Talk.png");
@@ -97,8 +91,10 @@ public class LoginView extends JFrame{
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			String id = txtHansungnavercom.getText().trim();
+	
 			StartingScreen screen = new StartingScreen(id, "127.0.0.1", "30000");
 			setVisible(false);
+			
 		}
 	}
 }
