@@ -84,7 +84,7 @@ public class ChatRoom extends JFrame {
 		contentPane.add(scrollPane);
 
 		textArea = new JTextPane();
-		textArea.setEditable(true);
+		textArea.setEditable(false);
 		textArea.setBackground(new Color(217,229,255));
 		textArea.setFont(new Font("굴림체", Font.PLAIN, 14));
 		scrollPane.setViewportView(textArea);
@@ -120,6 +120,7 @@ public class ChatRoom extends JFrame {
 			txtInput.requestFocus();
 			ImageSendAction action2 = new ImageSendAction();
 			imgBtn.addActionListener(action2);
+			
 
 		} catch (NumberFormatException e) { //| IOException e) {
 			// TODO Auto-generated catch block
@@ -195,10 +196,13 @@ public class ChatRoom extends JFrame {
 
 	// 이모티콘 출력
 	public void printEmoticon(ImageIcon emoticon) {
-		StyledDocument doc = textArea.getStyledDocument();;
+		ChatMsg obcmr = new ChatMsg(ID, "300", room_id, userlist, "IMG");
+		int len = textArea.getDocument().getLength();
+		StyledDocument doc = textArea.getStyledDocument();
 		SimpleAttributeSet right = new SimpleAttributeSet();
 		StyleConstants.setAlignment(right,StyleConstants.ALIGN_RIGHT);
 		try {
+			textArea.setCaretPosition(len);
 			doc.setParagraphAttributes(doc.getLength(), 1, right, false);
 			StyleConstants.setIcon(right, emoticon);
 			doc.insertString(doc.getLength(), "\n" , right);
@@ -206,6 +210,8 @@ public class ChatRoom extends JFrame {
 		catch(Exception ex) {
 			
 		}
+		obcmr.setImg(emoticon);
+		mainview.SendObject(obcmr);
 	}
 	class ImageSendAction implements ActionListener {
 		@Override
@@ -377,7 +383,9 @@ public class ChatRoom extends JFrame {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			
 			printEmoticon(src[num]);
+			
 		}
 		
 	}

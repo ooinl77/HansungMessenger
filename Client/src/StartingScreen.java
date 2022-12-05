@@ -186,6 +186,7 @@ public class StartingScreen extends JFrame {
 							if (cm.getRoomId().equals(roomVector.get(i).getRoomId()) && !(cm.getId().equals(ID))) {
 								roomVector.get(i).AppendText("[" + cm.getId() + "]");
 								roomVector.get(i).AppendImage(cm.img);
+								roomVector.get(i).AppendText("\n");
 							}
 								
 						}

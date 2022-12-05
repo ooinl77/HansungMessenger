@@ -46,6 +46,7 @@ public class Server extends JFrame {
 	private Vector<Friend> friendVector = new Vector<Friend>();
 	private Vector<ChatRoom> RoomVec = new Vector<ChatRoom>();
 	private String userlist;
+	private boolean sameroom = false;
 	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
 
 	/**
@@ -366,7 +367,8 @@ public class Server extends JFrame {
 								}
 							}
 						}
-					} else if (cm.getCode().matches("300")) { // logout message 처리
+					} else if (cm.getCode().matches("300")) {
+						roomid = cm.getRoomId();// logout message 처리
 						for(int i=0; i<room_vc.size(); i++) {
 							if(roomid.equals(room_vc.get(i).getRoomId())) {
 								userlist = room_vc.get(i).getUserList();
@@ -397,23 +399,34 @@ public class Server extends JFrame {
 							}
 						}
 					} else if (cm.getCode().matches("800")) {
+						
 						roomid = cm.getRoomId();
 						userlist = cm.getUserlist();
 						array = userlist.split(" ");
-						ChatRoom room = new ChatRoom(roomid, userlist);
-
-						for (int i = 0; i < user_vc.size(); i++) {
-							for(int j = 0; j < array.length; j++) {
-								UserService user = (UserService) user_vc.elementAt(i);
-								
-								if (array[j].equals(user.UserName)) {
-									ChatMsg obcmr = new ChatMsg("", "810", roomid, userlist, "방 생성");
-									user.WriteOneObject(obcmr);
-									break;
-								}
-							}	
+						for(int i = 0; i < room_vc.size(); i++) {
+							if(roomid.equals(room_vc.get(i).getRoomId())) {
+								sameroom = true;
+								break;
+							}						
 						}
-						RoomVec.add(room);
+						if(!sameroom)
+						{
+							ChatRoom room = new ChatRoom(roomid, userlist);
+							for (int i = 0; i < user_vc.size(); i++) {
+								for(int j = 0; j < array.length; j++) {
+									UserService user = (UserService) user_vc.elementAt(i);
+									
+									if (array[j].equals(user.UserName)) {
+										ChatMsg obcmr = new ChatMsg("", "810", roomid, userlist, "방 생성");
+										user.WriteOneObject(obcmr);
+										break;
+									}
+								}	
+							}
+							RoomVec.add(room);
+							
+						}					
+						sameroom = false;
 					}
 				} catch (IOException e) {
 					AppendText("ois.readObject() error");
