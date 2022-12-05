@@ -60,9 +60,7 @@ public class ChatRoom extends JFrame {
 	private EmoticonDialog dialog;
 	
 	private Vector<String> v = new Vector<String>();
-	StyledDocument doc;
-	SimpleAttributeSet right = new SimpleAttributeSet();
-	SimpleAttributeSet left = new SimpleAttributeSet();
+	
 	
 	/**
 	 * Create the frame.
@@ -86,7 +84,6 @@ public class ChatRoom extends JFrame {
 		contentPane.add(scrollPane);
 
 		textArea = new JTextPane();
-		doc = textArea.getStyledDocument();
 		textArea.setEditable(true);
 		textArea.setBackground(new Color(217,229,255));
 		textArea.setFont(new Font("굴림체", Font.PLAIN, 14));
@@ -156,6 +153,8 @@ public class ChatRoom extends JFrame {
 				txtInput.requestFocus(); // 메세지를 보내고 커서를 다시 텍스트 필드로 위치시킨다
 				
 				// 본인이 보낸 메시지 오른쪽 출력
+				StyledDocument doc = textArea.getStyledDocument();;
+				SimpleAttributeSet right = new SimpleAttributeSet();
 				StyleConstants.setAlignment(right,StyleConstants.ALIGN_RIGHT);
 				
 				try {
@@ -195,6 +194,9 @@ public class ChatRoom extends JFrame {
 
 	// 이모티콘 출력
 	public void printEmoticon(ImageIcon emoticon) {
+		StyledDocument doc = textArea.getStyledDocument();;
+		SimpleAttributeSet right = new SimpleAttributeSet();
+		StyleConstants.setAlignment(right,StyleConstants.ALIGN_RIGHT);
 		try {
 			doc.setParagraphAttributes(doc.getLength(), 1, right, false);
 			StyleConstants.setIcon(right, emoticon);
@@ -222,7 +224,10 @@ public class ChatRoom extends JFrame {
 				int width = img.getIconWidth();
 				int height = img.getIconHeight();
 				
+				StyledDocument doc = textArea.getStyledDocument();
+				SimpleAttributeSet right = new SimpleAttributeSet();
 				StyleConstants.setAlignment(right,StyleConstants.ALIGN_RIGHT);
+				
 				doc.setParagraphAttributes(doc.getLength(), 1, right, false);
 				
 				try {
@@ -264,8 +269,9 @@ public class ChatRoom extends JFrame {
 
 	// 화면에 출력
 	public void AppendText(String msg) {
-//		textArea.append(msg + "\n");
 		msg = msg.trim(); // 앞뒤 blank와 \n을 제거한다
+		StyledDocument doc = textArea.getStyledDocument();
+		SimpleAttributeSet left = new SimpleAttributeSet();
 		StyleConstants.setAlignment(left,StyleConstants.ALIGN_LEFT);
 		try {
 			doc.setParagraphAttributes(doc.getLength(), 1, left, false);
@@ -283,6 +289,8 @@ public class ChatRoom extends JFrame {
 		width = ori_icon.getIconWidth();
 		height = ori_icon.getIconHeight();
 		
+		StyledDocument doc = textArea.getStyledDocument();
+		SimpleAttributeSet left = new SimpleAttributeSet();
 		StyleConstants.setAlignment(left,StyleConstants.ALIGN_LEFT);
 		
 		// Image가 너무 크면 최대 가로 또는 세로 200 기준으로 축소시킨다.

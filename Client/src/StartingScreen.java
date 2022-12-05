@@ -5,6 +5,8 @@ import javax.swing.border.LineBorder;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
@@ -26,7 +28,6 @@ public class StartingScreen extends JFrame {
 	private ImageIcon chatIcon = new ImageIcon("img/chat.jpg");
 	private ImageIcon settingIcon = new ImageIcon("img/setting.jpg");
 	private String statusMessage = "상태메세지";
-	private StringBuffer userlist; // 채팅방 초대할 유저 목록
 	private JLabel profile; // 프로필 사진, 이름 
 	private JLabel status; // 상태 메시지 
 	private JButton addFriendButton; // 친구 추가 버튼 
@@ -66,7 +67,7 @@ public class StartingScreen extends JFrame {
 		roomVector = new Vector<ChatRoom>();
 		friendVector = new Vector<Friend>();
 		chatRoomDialog = new ChatRoomDialog("채팅방 생성");
-		userlist = new StringBuffer(ID);
+		
 		statusDialog = new StatusDialog(this, "상태 메세지 변경");
 		addFriendDialog = new addFriendDialog(this, "친구 추가");
 		JPanel leftPanel = new JPanel();
@@ -193,10 +194,7 @@ public class StartingScreen extends JFrame {
 						AddFriend(baseProfile, cm.getData(), statusMessage);
 						break;
 					case "810":
-						ChatRoom room = new ChatRoom(cm.getRoomId(), cm.getUserlist(), StartingScreen.this, ID);
-						room.setVisible(false);
-						roomVector.add(room);
-						AddRoomList();
+						AddRoomList(cm.getRoomId(), cm.getUserlist());
 						break;
 					}
 				} catch (IOException e) {
@@ -308,7 +306,10 @@ public class StartingScreen extends JFrame {
 		return panel;
 	}
 	
-	public void AddRoomList() {
+	public void AddRoomList(String room_id, String userlist) {
+		ChatRoom room = new ChatRoom(room_id, userlist, StartingScreen.this, ID);
+		room.setVisible(false);
+		roomVector.add(room);
 		rightPanel.removeAll();
 		setChatRoomPanel();
 		rightPanel.updateUI();
@@ -366,8 +367,6 @@ public class StartingScreen extends JFrame {
 			// 채팅방 추가 버튼
 			else if (e.getSource() == addRoom) {
 				chatRoomDialog = new ChatRoomDialog("채팅방 생성");
-				userlist.setLength(0);
-				userlist.append(ID);
 				chatRoomDialog.setVisible(true);
 				
 			}
@@ -482,36 +481,52 @@ public class StartingScreen extends JFrame {
 	// 채팅방 생성 다이얼로그
 	class ChatRoomDialog extends JDialog { 
 		private static final long serialVersionUID = 1L;
+		private String userlist = new String(); // 채팅방 초대할 유저 목록
 		private JTextField roomNum = new JTextField();
 		private JButton createBtn = new JButton("생성");
+		private JScrollPane scroll;
+		private JPanel panel;
 		
 		public ChatRoomDialog(String title) {
 			//super(frame, title);
 			setLayout(new BorderLayout());
 			this.add(roomNum, BorderLayout.NORTH);
 			this.add(createBtn, BorderLayout.SOUTH);
-			JPanel panel = new JPanel();
+			panel = new JPanel();
 			
-			panel.setLayout(new GridLayout(100,1,0,0));
+			panel.setLayout(new GridLayout(10,1,0,0));
 			for (int i=0; i<friendVector.size(); i++) {
-				Friend label = friendVector.get(i);
-				label.addMouseListener(new MouseAdapter() {
+				JLabel label = new JLabel();
+				label.setLayout(new BorderLayout(0,0));
+				String friendID = friendVector.get(i).getID();
+				JCheckBox selected = new JCheckBox();
+				selected.addItemListener(new ItemListener() {
 					@Override
-					public void mouseClicked(MouseEvent e) {
-						userlist.append(" " + label.getID());
-						System.out.println(userlist.toString() + "****");
-					}
+					public void itemStateChanged(ItemEvent e) {
+						if (e.getStateChange() == ItemEvent.SELECTED) {
+							userlist = userlist + friendID + " ";
+							System.out.println(userlist);
+						}
+						else {
+							userlist = userlist.replace(friendID + " ", "");
+							System.out.println(userlist);
+						}
+					}	
 				});
+				label.add(new JLabel(friendVector.get(i).getIcon()), BorderLayout.WEST);
+				label.add(new JLabel(friendID), BorderLayout.CENTER);
+				label.add(selected, BorderLayout.EAST);
 				panel.add(label);
 			}
-			this.add(new JScrollPane(panel), BorderLayout.CENTER);
+			scroll = new JScrollPane(panel);
+			this.add(scroll, BorderLayout.CENTER);
 			setSize(300,500);
 			
 			createBtn.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					JLabel room = new JLabel("채팅방 " + roomNum.getText());
-					ChatMsg msg = new ChatMsg(ID, "800", roomNum.getText(), userlist.toString() , "방 생성");
+					ChatMsg msg = new ChatMsg(ID, "800", roomNum.getText(), ID + userlist , "방 생성");
 					SendObject(msg);
 					room.setBorder(new LineBorder(Color.BLACK, 1, false));
 					setVisible(false);
