@@ -151,7 +151,7 @@ public class ChatRoom extends JFrame {
 				
 				txtInput.setText(""); // 메세지를 보내고 나면 메세지 쓰는창을 비운다.
 				txtInput.requestFocus(); // 메세지를 보내고 커서를 다시 텍스트 필드로 위치시킨다
-				
+				int len = textArea.getDocument().getLength();
 				// 본인이 보낸 메시지 오른쪽 출력
 				StyledDocument doc = textArea.getStyledDocument();;
 				SimpleAttributeSet right = new SimpleAttributeSet();
@@ -183,6 +183,7 @@ public class ChatRoom extends JFrame {
 						printEmoticon(src[7]);
 					}
 					else {
+						textArea.setCaretPosition(len);
 						doc.setParagraphAttributes(doc.getLength(), 1, right, false);
 						doc.insertString(doc.getLength(), msg + "\n", right);
 					}
@@ -224,7 +225,7 @@ public class ChatRoom extends JFrame {
 				double ratio;
 				int width = img.getIconWidth();
 				int height = img.getIconHeight();
-				
+				int len = textArea.getDocument().getLength();
 				StyledDocument doc = textArea.getStyledDocument();
 				SimpleAttributeSet right = new SimpleAttributeSet();
 				StyleConstants.setAlignment(right,StyleConstants.ALIGN_RIGHT);
@@ -245,10 +246,12 @@ public class ChatRoom extends JFrame {
 						Image new_img = ori_img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
 						ImageIcon img_icon = new ImageIcon(new_img);
 						StyleConstants.setIcon(right, img_icon);
+						textArea.setCaretPosition(len);
 						doc.insertString(doc.getLength(), "\n" , right);
 					}
 					else {
 						StyleConstants.setIcon(right, img);
+						textArea.setCaretPosition(len);
 						doc.insertString(doc.getLength(), "\n" , right);
 					}
 				}

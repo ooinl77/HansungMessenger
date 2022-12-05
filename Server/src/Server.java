@@ -366,7 +366,8 @@ public class Server extends JFrame {
 								}
 							}
 						}
-					} else if (cm.getCode().matches("300")) { // logout message 처리
+					} else if (cm.getCode().matches("300")) {
+						roomid = cm.getRoomId();
 						for(int i=0; i<room_vc.size(); i++) {
 							if(roomid.equals(room_vc.get(i).getRoomId())) {
 								userlist = room_vc.get(i).getUserList();
