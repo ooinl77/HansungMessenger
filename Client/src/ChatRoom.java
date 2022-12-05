@@ -215,9 +215,10 @@ public class ChatRoom extends JFrame {
 				fd = new FileDialog(frame, "이미지 선택", FileDialog.LOAD);
 			
 				fd.setVisible(true);
-				ChatMsg obcmr = new ChatMsg(ID, "300", room_id, userlist, "IMG");
 				
 				ImageIcon img = new ImageIcon(fd.getDirectory() + fd.getFile());
+				ChatMsg obcmr = new ChatMsg(ID, "300", room_id, userlist, "IMG");
+				
 				Image ori_img = img.getImage();
 				
 				double ratio;

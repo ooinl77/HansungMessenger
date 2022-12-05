@@ -408,6 +408,9 @@ public class StartingScreen extends JFrame {
 						ImageIcon new_icon = new ImageIcon(new_img);
 						profile.setIcon(new_icon);
 						profilePicture.setImage(new_img);
+//						ChatMsg msg = new ChatMsg(ID, "500", statusMessage);
+//						msg.setImg(new_icon);
+//						SendObject(msg);
 					}
 					catch(Exception ex) {
 						
@@ -526,7 +529,7 @@ public class StartingScreen extends JFrame {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					JLabel room = new JLabel("채팅방 " + roomNum.getText());
-					ChatMsg msg = new ChatMsg(ID, "800", roomNum.getText(), ID + userlist , "방 생성");
+					ChatMsg msg = new ChatMsg(ID, "800", roomNum.getText(), ID + " " + userlist , "방 생성");
 					SendObject(msg);
 					room.setBorder(new LineBorder(Color.BLACK, 1, false));
 					setVisible(false);
