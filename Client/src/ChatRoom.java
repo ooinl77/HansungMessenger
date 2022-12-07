@@ -1,6 +1,5 @@
 // JavaObjClientView.java ObjecStram 기반 Client
 //실질적인 채팅 창
-import java.awt.FileDialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.DataInputStream;
@@ -33,6 +32,7 @@ public class ChatRoom extends JFrame {
 	private StartingScreen mainview;
 	private String ID;
 	private JPanel contentPane;
+	private JPanel li;
 	private JTextField txtInput;
 //	private String UserName;
 	private JButton btnSend;
@@ -58,7 +58,7 @@ public class ChatRoom extends JFrame {
 	private JButton imgBtn;
 	private JButton emoBtn;
 	private EmoticonDialog dialog;
-	
+	private ChatListDialog dialog1;
 	private Vector<String> v = new Vector<String>();
 	
 	
@@ -82,6 +82,11 @@ public class ChatRoom extends JFrame {
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(12, 10, 352, 471);
 		contentPane.add(scrollPane);
+		
+		dialog1 = new ChatListDialog(this, "인원 목록");
+		JScrollPane scrollPane1 = new JScrollPane();
+		scrollPane1.setBounds(12, 10, 352, 471);
+		contentPane.add(scrollPane1);
 
 		textArea = new JTextPane();
 		textArea.setEditable(false);
@@ -367,7 +372,7 @@ public class ChatRoom extends JFrame {
 				emoticon.add(new JButton(src[i]));
 			}
 			for (int i=0; i<emoticon.size(); i++) {
-				this.add(emoticon.get(i));
+				getContentPane().add(emoticon.get(i));
 				// 이모티콘을 클릭하면 이모티콘 정보 추출 
 				emoticon.get(i).addActionListener(new emoticonSendListener(i));
 			}
@@ -388,5 +393,14 @@ public class ChatRoom extends JFrame {
 			
 		}
 		
+	}
+	class ChatListDialog extends JDialog {
+		private static final long serialVersionUID = 1L;
+		
+		Vector<JPanel> roomlist = new Vector<JPanel>();
+		
+		public ChatListDialog(JFrame frame, String title) {
+			
+		}	
 	}
 }

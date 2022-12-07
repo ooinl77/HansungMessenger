@@ -10,7 +10,7 @@ class ChatMsg implements Serializable {
 	private String data;
 	//private Vector userlist = new Vector();
 	private String userlist;
-	public ImageIcon img;
+	private ImageIcon profileimg;
 
 	public ChatMsg(String id, String code, String msg) {
 		this.id = id;
@@ -23,6 +23,13 @@ class ChatMsg implements Serializable {
 		this.room_id = room_id;
 		this.userlist = userlist;
 		this.data = msg;
+	}
+	public ChatMsg(String id, String code, String msg, String userlist, ImageIcon img) {
+		this.id = id;
+		this.code = code;
+		this.data = msg;
+		this.userlist = userlist;
+		this.profileimg = img;
 	}
 	
 	public String getCode() {
@@ -49,8 +56,11 @@ class ChatMsg implements Serializable {
 		this.data = data;
 	}
 
+	public ImageIcon getProfileImg() {
+		return profileimg;
+	}
 	public void setImg(ImageIcon img) {
-		this.img = img;
+		this.profileimg = img;
 	}
 
 	public String getUserlist() {

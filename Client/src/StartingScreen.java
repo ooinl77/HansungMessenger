@@ -44,7 +44,7 @@ public class StartingScreen extends JFrame {
 	private ChatRoomDialog chatRoomDialog;
 	private addFriendDialog addFriendDialog;
 	private Vector<ChatRoom> roomVector;
-	private Vector<Friend> friendVector;
+	Vector<Friend> friendVector;
 	
 	private static final int BUF_LEN = 128; // Windows 처럼 BUF_LEN 을 정의
 	private Socket socket; // 연결소켓
@@ -106,7 +106,7 @@ public class StartingScreen extends JFrame {
 			ois = new ObjectInputStream(socket.getInputStream());
 
 			//SendMessage("/login " + UserName);
-			ChatMsg obcm = new ChatMsg(ID, "100", "Hello");
+			ChatMsg obcm = new ChatMsg(ID, "100", "Hello", statusMessage, profilePicture);
 			SendObject(obcm);
 						
 			ListenNetwork net = new ListenNetwork();
@@ -185,15 +185,17 @@ public class StartingScreen extends JFrame {
 						for (int i = 0; i < roomVector.size(); i++) {
 							if (cm.getRoomId().equals(roomVector.get(i).getRoomId()) && !(cm.getId().equals(ID))) {
 								roomVector.get(i).AppendText("[" + cm.getId() + "]");
-								roomVector.get(i).AppendImage(cm.img);
+								roomVector.get(i).AppendImage(cm.getProfileImg());
 								roomVector.get(i).AppendText("\n");
 							}
 								
 						}
 						break;
 					case "600":
-						AddFriend(baseProfile, cm.getData(), statusMessage);
+						AddFriend(cm.getProfileImg(), cm.getId(), cm.getUserlist());
 						break;
+					case "610":
+						UpdateFriend(cm.getProfileImg(), cm.getId(), cm.getUserlist());
 					case "810":
 						AddRoomList(cm.getRoomId(), cm.getUserlist());
 						break;
@@ -217,6 +219,20 @@ public class StartingScreen extends JFrame {
 	public void AddFriend(ImageIcon icon, String id, String statusMessage) {
 		Friend f = new Friend(icon, id, statusMessage);
 		friendVector.add(f);
+		rightPanel.removeAll();
+		setFriendPanel(ID);
+		rightPanel.updateUI();
+	}
+	
+	public void UpdateFriend(ImageIcon icon, String id, String statusMessage) {
+		for(int i=0; i<friendVector.size(); i++) {
+			Friend friend = friendVector.elementAt(i);
+			if(id.equals(friend.getID())) {
+				friend.setStatusMessage(statusMessage);
+				friend.setIcon(icon);
+				break;
+			}
+		}
 		rightPanel.removeAll();
 		setFriendPanel(ID);
 		rightPanel.updateUI();
@@ -387,7 +403,7 @@ public class StartingScreen extends JFrame {
 				frame = new JFrame("프로필 사진 변경");
 				fd = new FileDialog(frame, "이미지 선택", FileDialog.LOAD);
 				fd.setVisible(true);
-				
+				String friendlist = null;
 				ImageIcon icon = new ImageIcon(fd.getDirectory() + fd.getFile());
 				Image img = icon.getImage();
 				
@@ -417,6 +433,12 @@ public class StartingScreen extends JFrame {
 						
 					}
 				}
+				for(int i=0; i<friendVector.size(); i++) {
+					Friend friend = friendVector.elementAt(i);
+					friendlist = friendlist + friend.getID() + " ";
+				}
+				ChatMsg obcm2 = new ChatMsg(ID, "620", friendlist, statusMessage, profilePicture);
+				SendObject(obcm2);
 			}
 			// 상태 메시지 변경 
 			else if (e.getSource() == status) {
@@ -430,7 +452,7 @@ public class StartingScreen extends JFrame {
 		private static final long serialVersionUID = 1L;
 		private JTextField tf = new JTextField(10);
 		private JButton changeButton = new JButton("확인");
-		
+		private String friendlist = "";
 		public StatusDialog(JFrame frame, String title) {
 			super(frame, title);
 			setLayout(new FlowLayout());
@@ -448,9 +470,15 @@ public class StartingScreen extends JFrame {
 					else {
 						statusMessage = tf.getText();
 					}
+					for(int i=0; i<friendVector.size(); i++) {
+						Friend friend = friendVector.elementAt(i);
+						friendlist = friendlist + " " + friend.getID();
+					}
+					ChatMsg obcm2 = new ChatMsg(ID, "610", friendlist, statusMessage, profilePicture);
+					SendObject(obcm2);
 					status.setText(statusMessage);
 					setVisible(false);
-				}
+				}	
 			});
 		}	
 	}
@@ -474,12 +502,13 @@ public class StartingScreen extends JFrame {
 						
 					}
 					else {
-						ChatMsg obcm2 = new ChatMsg(ID, "600", tf.getText());
+						ChatMsg obcm2 = new ChatMsg(ID, "600", tf.getText(), statusMessage, profilePicture);
 						SendObject(obcm2);
 					}
 					setVisible(false);
 				}
 			});
+			
 		}	
 	}
 	// 채팅방 생성 다이얼로그

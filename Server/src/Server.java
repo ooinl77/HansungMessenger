@@ -174,6 +174,7 @@ public class Server extends JFrame {
 
 		private Socket client_socket;
 		private Vector user_vc;
+		private Vector<Friend> friend_vc;
 		private Vector<ChatRoom> room_vc;
 		public String roomid;
 		public String UserName = "";
@@ -185,6 +186,7 @@ public class Server extends JFrame {
 			this.client_socket = client_socket;
 			this.user_vc = UserVec;
 			this.room_vc = RoomVec;
+			this.friend_vc = friendVector;
 			try {
 //				is = client_socket.getInputStream();
 //				dis = new DataInputStream(is);
@@ -343,7 +345,7 @@ public class Server extends JFrame {
 						continue;
 					if (cm.getCode().matches("100")) {
 						UserName = cm.getId();
-						friendVector.add(new Friend(baseProfile, cm.getId(), statusMessage));
+						friendVector.add(new Friend(cm.getProfileImg(), cm.getId(), cm.getUserlist()));
 						UserStatus = "O"; // Online 상태
 						Login();
 					} else if (cm.getCode().matches("200")) {
@@ -393,13 +395,46 @@ public class Server extends JFrame {
 						for (int i =0; i<user_vc.size(); i++) {
 							UserService user = (UserService) user_vc.elementAt(i);
 							if (user.UserName.equals(cm.getData())) {
-								ChatMsg friendMsg = new ChatMsg("", "600", cm.getData());
-								WriteOneObject(friendMsg);
-								break;
-							}
+								ChatMsg friendMsg = new ChatMsg(cm.getId(), "600", cm.getData(), cm.getUserlist(), cm.getProfileImg());
+								user.WriteOneObject(friendMsg);
+							} 
+							for(int j = 0; j<friend_vc.size(); j++) {
+								Friend friend = friend_vc.elementAt(j);
+								if (user.UserName.equals(cm.getId()) && friend.getID().equals(cm.getId())) {
+									ChatMsg friendMsg = new ChatMsg(cm.getData(), "600", " ", friend.getStatusMessage(), friend.getIcon());
+									user.WriteOneObject(friendMsg);
+									break;
+								}							
+							}						
 						}
+					} else if (cm.getCode().matches("610")) {
+						userlist = cm.getData();
+						String[] array1 = userlist.split(" ");
+						for (int i =0; i<user_vc.size(); i++) {
+							UserService user = (UserService) user_vc.elementAt(i);
+							for(int j = 0; j<friend_vc.size(); j++) {
+								Friend friend = friend_vc.elementAt(j);
+								if(friend.getID().equals(cm.getId())) {
+									friend.setStatusMessage(cm.getUserlist());
+									for(int k=0; k<array1.length; k++) {
+										if(user.UserName.equals(array1[k])) {
+											ChatMsg friendMsg = new ChatMsg(cm.getData(), "610", " ", friend.getStatusMessage(), friend.getIcon());
+											user.WriteOneObject(friendMsg);
+										}
+									}
+									
+								}							
+							}						
+						}
+								
+					} else if (cm.getCode().matches("620")) {
+						for(int i=0; i<friend_vc.size(); i++) {
+							Friend friend = friend_vc.elementAt(i);
+							if(friend.getID().equals(cm.getId())) {
+								friend.setIcon(cm.getProfileImg());
+							}
+						}		
 					} else if (cm.getCode().matches("800")) {
-						
 						roomid = cm.getRoomId();
 						userlist = cm.getUserlist();
 						array = userlist.split(" ");
@@ -427,7 +462,7 @@ public class Server extends JFrame {
 							
 						}					
 						sameroom = false;
-					}
+					} 
 				} catch (IOException e) {
 					AppendText("ois.readObject() error");
 					try {
